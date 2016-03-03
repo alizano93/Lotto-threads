@@ -12,21 +12,8 @@
 #include <stdlib.h>
 
 typedef long thread_t;
-long mode; // 1 = expropiativo 2= no expropiativo
-sigset_t sigThreadMask; // para el manejo de las sennales
-int ignorarsennal;
-struct sigaction schedulerHandle; //con este es que voy a inicializar el scheduler (ver el thread_init)
-ucontext_t mainContext; //funciona como notificador
-struc itimerval quantum; //estrutura para el timer
-long timeIntervalInMSec;
 
-struct thread {
-	struct thread * next;	// siguiente en la cola
-    thread_t tid;
-    ucontext_t context;
-    int isCompleted;
 
-};
 
 thread getNewThread(){
     thread nuevo = (thread)malloc(sizeof(thread));
