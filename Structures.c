@@ -47,3 +47,9 @@ int getNextThreadId(){
     static long currentId = 0;
     return ++currentId;
 }
+
+void flush(Thread thread){
+    if(thread != null){
+
+    }
+}
