@@ -12,6 +12,7 @@
 #include <stdlib.h>
 
 typedef long thread_t;
+ThreadList readylist = null;
 long mode; // 1 = expropiativo 2= no expropiativo
 sigset_t sigThreadMask; // para el manejo de las sennales
 int ignorarsennal;
@@ -28,7 +29,7 @@ void thread_init(long nquantum) {
         sigaddset(&sigThreadMask, SIGPROF); //para mandar sennal cuando expire el timer
         ignoreSignal = 0;
 
-        thread_queue_init(&readylist); //inicializo la cola de threads
+        //TODO: inicializo la cola de threads
 
         if(readylist != null) {
 
@@ -40,7 +41,7 @@ void thread_init(long nquantum) {
             //Meto a la lista
 
             memset(&schedylerHandle, 0, sizeof(schedulerHandle));
-            schedulerHandle.sa_handler //http://linux.die.net/man/2/sigaction
+            schedulerHandle.sa_handler = &scheduler; //http://linux.die.net/man/2/sigaction
             sigaction(SIFPROF, &schedulerHandle, NULL);
             //inicializo el quantum
             quantum.it_value.tv_sec = 0;// http://linux.die.net/man/2/setitimer
@@ -53,8 +54,29 @@ void thread_init(long nquantum) {
     }
 }
 
-int thread_create(thread_t *id, void *(*rutina)(void *), void *arg) {
-    //creo el contexto, lo meto a la cola de los threads devuelvo 1 si funciono todo
+int thread_create(thread_t *id, void (*rutina)(void *), int arg) {
+   if(readylist != null){
+        sigprocmask(SIG_BLOCK, &sigThreadMask, null);
+        Thread newThread = getNewThreadnoStack();
+        getcontext(&(newThread->context));
+        newThread->context.uc_stack.ss_sp = malloc(STACKSIZE);
+
+        newThread->context.uc_stack.ss_size = STACKSIZE;
+        newThread->context.uc_stack.ss_flags = 0;
+        newThread->hasStackSpace = 1;
+
+        newThread->context.uc_link = &mainContext;
+
+        makecontext(&(newThread->context),rutina,0);
+
+        *id = newThread->tid;
+
+        //TODO:METER EL THREAD A LA LISTA
+
+        sigprocmask(SIG_UNBLOCK, &sigThreadMask,null);
+        return 1;
+   }
+   return -1;
 }
 
 void thread_yield(){
