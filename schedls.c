@@ -38,6 +38,8 @@ void reCalculateBoundaries(int taskToRemove){
 			memcpy(newTask, actual, sizeof(struct task_t));
 			auxArray[dx] = newTask;
 			dx++;
+		}else{
+			totalTickets -= tasks[x]->tickets;
 		}
 		
 	}
@@ -111,7 +113,7 @@ void removeTask(int idTask){
 }
 
 
-struct sched_t *sched_ls_alloc(){
+struct sched_t * sched_ls_alloc(){
 
 	struct sched_t * ls = (struct sched_t * ) malloc(sizeof(struct sched_t));
 	ls->nextTask = nextTask;
