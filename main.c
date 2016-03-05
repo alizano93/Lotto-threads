@@ -1,12 +1,15 @@
-#include<stdio.h>
-#include "sched.h"
+#include <stdio.h>
+#include "Structures.h"
+#include "myThread.h"
 
-
+extern int totalProcess;
 
 int main(int argc, char * argv[]){
 
-
-	struct sched_t *sch = sched_ls_alloc();
+	totalProcess = 0;
+	printf("%d",totalProcess);
+	thread_init(10000, 2);
+	printf("%d",totalProcess);
 
 	return 0;
 }
