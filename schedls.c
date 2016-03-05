@@ -9,14 +9,18 @@
 int totalProcess;
 int actualNumberOfProcess;
 int totalTickets;
+int mode;
 struct task_t **tasks;
 ucontext_t uctx_main;
+struct task_t *current;
 
-void init(int totalProcessInit){
+void init(int totalProcessInit, int modeIn){
 
 	totalProcess = totalProcessInit;
 	tasks = (struct task_t **) malloc (sizeof(struct task_t*) * totalProcess);		
 	actualNumberOfProcess = 0;
+	mode = modeIn;
+	srand (time(NULL));
 }	
 
 void reCalculateBoundaries(int taskToRemove){
@@ -53,7 +57,7 @@ struct task_t * nextTask(){
 	int limiteInferior = 0;
 	int limiteSuperior = actualNumberOfProcess;
 
-	int winnerTicket = 01; //Sacar numero random
+	int winnerTicket = rand() % totalTickets; //Sacar numero random
 	//binary search to find the winner
 	while(limiteInferior <= limiteSuperior){
 
@@ -70,7 +74,7 @@ struct task_t * nextTask(){
 			limiteInferior = medio +1;
 			
 		}
-		
+		current = actual;
 		return actual;	
 	}	
 
@@ -82,10 +86,11 @@ void run(){
 
 	while(actualNumberOfProcess > 0){
 
-		struct task_t *currentTask = nextTask();
-		swapcontext(&uctx_main, &currentTask->context);
-		if(currentTask->finish){			
-			reCalculateBoundaries(currentTask->id);
+		current = nextTask();
+		swapcontext(&uctx_main, &current->context);
+		
+		if(current->finish){			
+			reCalculateBoundaries(current->id);
 		}
 
 	}
@@ -112,6 +117,13 @@ void removeTask(int idTask){
 
 }
 
+void manageTimer(){
+
+	if(mode == EXPROPIATIVO){
+		swapcontext(&current->context, &uctx_main);
+	}
+}
+
 
 struct sched_t * sched_ls_alloc(){
 
@@ -119,15 +131,9 @@ struct sched_t * sched_ls_alloc(){
 	ls->nextTask = nextTask;
 	ls->addTask = addTask;
 	ls->removeTask = removeTask;
+	ls->manageTimer = manageTimer;
+	ls->init = init;
+	
 	
 	return ls;
 }
-
-
-int main(){
-
-	
-
-}
-
-

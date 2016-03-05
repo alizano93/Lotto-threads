@@ -7,9 +7,15 @@
 #include <stdlib.h>
 #include "myThread.h"
 
+
 void trabajo(int cantidadTrabajo) {
 
 }
-int main (int argc, char** argv){
 
+
+int main (int argc, char*argv[]){
+
+
+	return 0;
+	
 }

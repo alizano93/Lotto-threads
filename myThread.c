@@ -22,6 +22,15 @@ struc itimerval quantum; //estrutura para el timer
 long timeIntervalInMSec;
 sigset_t sigsetMask;
 
+struct sched_t *scheduler;
+
+void timer_handler(int sig, siginfo_t *si, void *uc){
+
+	scheduler->manageTimer();
+		
+}
+
+
 void thread_init(long nquantum) {
     if(readylist == null){
         sigemptyset(&sigThreadMask);
@@ -41,7 +50,7 @@ void thread_init(long nquantum) {
             //Meto a la lista
 
             memset(&schedylerHandle, 0, sizeof(schedulerHandle));
-            schedulerHandle.sa_handler = &scheduler; //http://linux.die.net/man/2/sigaction
+            schedulerHandle.sa_handler = timerHandler; //http://linux.die.net/man/2/sigaction
             sigaction(SIFPROF, &schedulerHandle, NULL);
             //inicializo el quantum
             quantum.it_value.tv_sec = 0;// http://linux.die.net/man/2/setitimer
@@ -50,6 +59,8 @@ void thread_init(long nquantum) {
             quantum.it_interval.tv_usec = timeIntervalInMSec;
             setitimer(ITIMER_PROF, *quantum, NULL);
         }
+
+	
 
     }
 }
@@ -67,7 +78,7 @@ int thread_create(thread_t *id, void (*rutina)(void *), int arg) {
 
         newThread->context.uc_link = &mainContext;
 
-        makecontext(&(newThread->context),rutina,0);
+        makecontext(&(newThread->context),rutina, 0);
 
         *id = newThread->tid;
 
