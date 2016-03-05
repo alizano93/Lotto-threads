@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <sys/ucontext.h>
+#include <ucontext.h>
 #include <signal.h>
 #include <sys/time.h>
 #include <unistd.h>

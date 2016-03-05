@@ -33,7 +33,7 @@ struct Thread * nextTask(){
             
         }
         
-        return actual;  
+        return actual;
     }   
 
     return NULL;

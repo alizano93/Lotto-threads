@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <setjmp.h>
-#include <sys/ucontext.h>
+#include <ucontext.h>
 #include <signal.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -23,7 +23,7 @@
 void thread_init(long nquantum, int totalProcessInit);
 
 //creo el contexto, lo meto a la cola de los threads devuelvo 1 si funciono todo
-int thread_create(thread_t *id, void (*rutina)(void *), int arg);
+int thread_create(thread_t *id, void (*rutina)(int), int arg);
 
 //con esto deberia bastar mandando la sennal se captura y cambio segun el scheduler
 void thread_yield();
@@ -37,6 +37,7 @@ thread_t self();
 //espera a que todos hayan terminado
 int thread_join();
 
+static void muchoTrabajo(int n);
 
 #endif //MY_THREAD_H
 

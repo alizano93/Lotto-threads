@@ -5,7 +5,7 @@
 
 #include <stdio.h>
 #include <setjmp.h>
-#include <sys/ucontext.h>
+#include <ucontext.h>
 #include <signal.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -24,17 +24,43 @@ long mode; // 1 = expropiativo 2= no expropiativo
 sigset_t sigThreadMask; // para el manejo de las sennales
 int ignorarsennal;
 struct sigaction schedulerHandle; //con este es que voy a inicializar el scheduler (ver el thread_init)
-ucontext_t mainContext; //funciona como notificador
+ucontext_t notifierContext; //funciona como notificador
 struct itimerval quantum; //estrutura para el timer
 long timeIntervalInMSec;
 sigset_t sigsetMask;
 struct Thread * current;
 
+void generalFunction(void (*rutine)(void*),void *arg){
+    (*rutine)(arg);
+    return;
+}
+
+void threadCompletedNotifier(){
+    current->isCompleted=1;
+    raise(SIGPROF);
+}
+
+ucontext_t getThreadCompleteNotifierContext(){
+    static int hasContextCreated;
+
+    if(!hasContextCreated){
+        getcontext(&notifierContext);
+        notifierContext.uc_link = 0;
+        notifierContext.uc_stack.ss_sp= malloc(STACKSIZE);
+        notifierContext.uc_stack.ss_size=STACKSIZE;
+        notifierContext.uc_stack.ss_flags = 0;
+        makecontext(&notifierContext, (void (*) (void))&threadCompletedNotifier, 0);
+        hasContextCreated=1;
+    }
+    return notifierContext;
+}
 void scheduler(int sigNum){
-    if(!ignorarsennal){
+
+   if(!ignorarsennal){
         sigprocmask(SIG_BLOCK,&sigsetMask,NULL);
         if(actualNumberOfProcess == 1) {
             if(current->isCompleted){
+            printf("enter");
                 sigprocmask(SIG_UNBLOCK,&sigsetMask,NULL);
                 exit(0);
             }
@@ -44,23 +70,24 @@ void scheduler(int sigNum){
             if(current != NULL){
 
                 struct Thread *nextNode;
-                if(current->isCompleted){
+                if(current->isCompleted){printf("enter0 ");
                     currentNodeCompleted = 1;
                     reCalculateBoundaries(current->tid);
                 }
                 nextNode = nextTask();
-                if(nextNode != NULL){
+                if(nextNode == NULL){printf("enter2 ");
                     sigprocmask(SIG_UNBLOCK, &sigsetMask, NULL);
                     exit(0);
                 }
-                if(nextNode != current){
+                if(nextNode != current){printf("enter3 ");
                     if(currentNodeCompleted){
                         setcontext(&(nextNode->context));
                     }
-                    else {
+                    else {printf("enter4 ");
                         swapcontext(&(current->context),&(nextNode->context));
                     }
                 }
+                printf("enter5 ");
             }
 
         }
@@ -71,11 +98,12 @@ void scheduler(int sigNum){
 
 void thread_init(long nquantum, int totalProcessInit) {
     totalProcess = totalProcessInit;
+
     tasks = (struct Thread **) malloc (sizeof(struct Thread*) * totalProcess);
     actualNumberOfProcess = 0;
     if(actualNumberOfProcess == 0){
-        sigemptyset(&sigThreadMask);
-        sigaddset(&sigThreadMask, SIGPROF); //para mandar sennal cuando expire el timer
+        sigemptyset(&sigsetMask);
+        sigaddset(&sigsetMask, SIGPROF); //para mandar sennal cuando expire el timer
         ignorarsennal = 0;
 
         //TODO: inicializo la cola de threads
@@ -84,11 +112,16 @@ void thread_init(long nquantum, int totalProcessInit) {
 
             timeIntervalInMSec = nquantum;
 
-            getNewThreadnoStack(1);
+            struct Thread * main = getNewThreadnoStack(1);
 
-            getcontext(&(tasks[0]->context));
+            getcontext(&(main->context));
 
-            current = tasks[0];
+            getThreadCompleteNotifierContext();
+            main->context.uc_link = &notifierContext;
+
+            tasks[actualNumberOfProcess++]=main;
+            current = main;
+
 
             memset(&schedulerHandle, 0, sizeof(schedulerHandle));
             schedulerHandle.sa_handler = &scheduler; //http://linux.die.net/man/2/sigaction
@@ -98,15 +131,17 @@ void thread_init(long nquantum, int totalProcessInit) {
             quantum.it_value.tv_usec = timeIntervalInMSec;
             quantum.it_interval.tv_sec=0;
             quantum.it_interval.tv_usec = timeIntervalInMSec;
+
             setitimer(ITIMER_PROF, &quantum, NULL);
         }
 
     }
 }
 
-int thread_create(thread_t *id, void (*rutina)(void *), int arg) {
+
+int thread_create(thread_t *id, void (*rutina)(int), int arg) {
    if(tasks != NULL){
-        sigprocmask(SIG_BLOCK, &sigThreadMask, NULL);
+        sigprocmask(SIG_BLOCK, &sigsetMask, NULL);
         struct Thread *newThread = getNewThreadnoStack(50);
         getcontext(&(newThread->context));
         newThread->context.uc_stack.ss_sp = malloc(STACKSIZE);
@@ -115,16 +150,16 @@ int thread_create(thread_t *id, void (*rutina)(void *), int arg) {
         newThread->context.uc_stack.ss_flags = 0;
         newThread->hasStackSpace = 1;
 
-        newThread->context.uc_link = &mainContext;
+        newThread->context.uc_link = &notifierContext;
 
-        makecontext(&(newThread->context),rutina,0);
+        makecontext (&(newThread->context), (void (*) (void))rutina, 1,1);
 
         *id = newThread->tid;
 
         //TODO:METER EL THREAD A LA LISTA
         tasks[actualNumberOfProcess++] = newThread;
 
-        sigprocmask(SIG_UNBLOCK, &sigThreadMask,NULL);
+        sigprocmask(SIG_UNBLOCK, &sigsetMask,NULL);
         return 1;
    }
    return -1;
@@ -145,6 +180,8 @@ thread_t self(){
 int thread_join(){
     return 0;//espera a que todos hayan terminado
 }
+
+
 
 
 
