@@ -5,10 +5,10 @@ int actualNumberOfProcess;
 int totalTickets;
 struct Thread **tasks;
 
-int getNextThreadId(){
-    static long currentId = 0;
-    return ++currentId;
-}
+//int getNextThreadId(){
+ //   static long currentId = 0;
+  //  return ++currentId;/
+//}
 /*
 struct Thread* getNewThreadnoStack(int tickets)
 {

@@ -29,11 +29,12 @@ ucontext_t notifierContext; //funciona como notificador
 struct itimerval quantum; //estrutura para el timer
 long timeIntervalInMSec;
 sigset_t sigsetMask;
-struct Thread * current;
+extern Thread * current;
 ucontext_t mainContext;
 
-void generalFunction(void (*rutine)(void*),void *arg){
+void generalFunction(void (*rutine)(int),int arg){
     (*rutine)(arg);
+    current->finish = 1;
     return;
 }
 /*
@@ -102,7 +103,7 @@ int thread_create(thread_t id, int tickets, void (*rutina)(int), int arg) {
         newThread->context.uc_stack.ss_size = STACKSIZE;
         newThread->context.uc_stack.ss_flags = 0;
         newThread->context.uc_link = &mainContext;
-        makecontext (&(newThread->context), (void (*) (void))rutina, 1,1);
+        makecontext (&(newThread->context), (void (*) (void))generalFunction, 2,rutina, arg);
      	scheduler->addTask(newThread);
 	
 	return 1;

@@ -91,7 +91,7 @@ void run(){
 		current = nextTask(); //O(log(n))
 		printf("Election %ld\n", current->tid);
 		swapcontext(&mainContext, &current->context);
-		current->finish = 1;
+		//current->finish = 1;
 		if(current->finish){			
 			reCalculateBoundaries(current->tid); //O(n)
 		}
