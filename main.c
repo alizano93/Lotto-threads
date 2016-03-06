@@ -19,7 +19,9 @@ extern int totalProcess;
 extern int actualNumberOfProcess;
 
 static void muchoTrabajo(int n){
-    printf("imprimo parametro=%d\n", n);
+    int j;
+    for(j=0;j<100000;j++)
+        printf("imprimo parametro=%d\n", n);
 
 }
 //O(3n)

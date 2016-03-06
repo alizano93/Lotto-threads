@@ -64,7 +64,7 @@ struct Thread* getNewThreadnoStack(int tickets)
 
 struct sched_t *scheduler;
 
-void timer_handler(int sig, siginfo_t *si, void *uc){
+void timer_handler(int sigNum){
 
 	scheduler->manageTimer();
 		
@@ -73,10 +73,22 @@ void timer_handler(int sig, siginfo_t *si, void *uc){
 
 void thread_init(long nquantum, int totalProcessInit, struct sched_t *schedulerIn) {
 	
-            scheduler = schedulerIn;
+        scheduler = schedulerIn;
+        sigemptyset(&sigsetMask);
+        sigaddset(&sigsetMask,SIGPROF);
 	    totalProcess = totalProcessInit;
-    	    actualNumberOfProcess = 0;
+    	actualNumberOfProcess = 0;
 	    getcontext(&mainContext);
+	    memset(&schedulerHandle,0,sizeof(schedulerHandle));
+	    schedulerHandle.sa_handler = timer_handler;
+	    sigaction(SIGPROF,&schedulerHandle,NULL);
+	    timeIntervalInMSec = nquantum;
+	    quantum.it_value.tv_sec = 0;// http://linux.die.net/man/2/setitimer
+        quantum.it_value.tv_usec = timeIntervalInMSec;
+        quantum.it_interval.tv_sec=0;
+        quantum.it_interval.tv_usec = timeIntervalInMSec;
+        setitimer(ITIMER_PROF, &quantum, NULL);
+
           /*  sigemptyset(&sigsetMask);
             sigaddset(&sigsetMask, SIGPROF); //para mandar sennal cuando expire el timer
             timeIntervalInMSec = nquantum;
