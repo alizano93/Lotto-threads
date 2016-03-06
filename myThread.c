@@ -142,6 +142,10 @@ int thread_join(){
     return 0;//espera a que todos hayan terminado
 }
 
+void updateThread(float percent, double result){
+	scheduler->updateWork(percent, result);
+}
+
 
 
 

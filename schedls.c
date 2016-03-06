@@ -4,6 +4,7 @@
 #include <string.h>
 #include "Structures.h"
 #include "myThread.h"
+#include "gtk_ui.h"
 
 int totalProcess;
 int actualNumberOfProcess;
@@ -13,6 +14,8 @@ Thread **tasks;
 extern ucontext_t mainContext;
 Thread *current;
 
+int completed;
+
 void init(int totalProcessInit, int modeIn){
 
 	totalProcess = totalProcessInit;
@@ -20,6 +23,7 @@ void init(int totalProcessInit, int modeIn){
 	actualNumberOfProcess = 0;
 	mode = modeIn;
 	srand (time(NULL));
+	completed = 0;
 }	
 
 void reCalculateBoundaries(int taskToRemove){
@@ -90,9 +94,18 @@ void run(){
 
 		current = nextTask(); //O(log(n))
 		//printf("Election %ld\n", current->tid);
+
+		//actualizar estado del que va a ser el current
+//		update_row_active(current->tid);
+
 		swapcontext(&mainContext, &current->context);
+		
+		//actualizar estado del que va a dejar de ser current
+//		update_row_inactive_completed(current->tid, current->finish);
+
 		//current->finish = 1;
-		if(current->finish){			
+		if(current->finish){
+			completed++;			
 			reCalculateBoundaries(current->tid); //O(n)
 		}
 	}
@@ -126,6 +139,10 @@ void manageTimer(){
 	//if(mode == EXPROPIATIVO){
 		swapcontext(&current->context, &mainContext);
 	//}
+}
+
+void updateWork(float percent, double result){
+	update_row_work(current->tid, percent, result);
 }
 
 

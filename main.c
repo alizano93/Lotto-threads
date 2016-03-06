@@ -8,6 +8,7 @@
 #include "Structures.h"
 #include "myThread.h"
 #include "task_t.h"
+#include "gtk_ui.h"
 
 int nThreads;
 int mode;
@@ -36,6 +37,11 @@ double arcsin(double x, int n)
 	double po = pow(x,(2*(double)i+1));
 	double factwo = po / (2*(double)i+1);
 	sum += fact * (pow(x,(2*(double)i+1)) / (2*(double)i+1));
+
+	//Agregado por Daniel
+	float percent = (float)i / (float)n;
+//	updateThread(percent, sum);
+	//Fin
     }
     return sum;
 }
@@ -187,18 +193,38 @@ void readFileProperties(char *path){
 
 int main(int argc, char * argv[]){
 	
+	
+
 	readFileProperties(argv[1]);
+
+	gtk_init(NULL, NULL);
 
 	struct sched_t *sch = sched_ls_alloc(nThreads, mode); //creating scheduler	
 
 	thread_init(quantum, nThreads, sch); //creating thread lib
+
+		
+
+//	create_UI(nThreads);
+//	show_ui();
+	
 	
 	int j;
 
 	for(j = 0; j < nThreads; j++){
-		thread_create(j, ticketsByThread[j] , trabajo, workByThread[j]);	//creating threads
+		int t_id = j + 1;
+		thread_create(t_id, ticketsByThread[j] , trabajo, workByThread[j]);	//creating threads
+//		add_row(t_id);
 	}
+
+	//show_ui();
+	
+
 	thread_join();
+
+//	gtk_main();// LOOP CONFLICT WITH JOIN????
+
+	
 	//thread_yield();
 	
 	return 0;
