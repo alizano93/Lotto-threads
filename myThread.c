@@ -30,6 +30,7 @@ struct itimerval quantum; //estrutura para el timer
 long timeIntervalInMSec;
 sigset_t sigsetMask;
 struct Thread * current;
+ucontext_t mainContext;
 
 void generalFunction(void (*rutine)(void*),void *arg){
     (*rutine)(arg);
@@ -72,11 +73,10 @@ void timer_handler(int sig, siginfo_t *si, void *uc){
 void thread_init(long nquantum, int totalProcessInit, struct sched_t *schedulerIn) {
 	
             scheduler = schedulerIn;
-    		
 	    totalProcess = totalProcessInit;
-
     	    actualNumberOfProcess = 0;
-            sigemptyset(&sigsetMask);
+	    getcontext(&mainContext);
+          /*  sigemptyset(&sigsetMask);
             sigaddset(&sigsetMask, SIGPROF); //para mandar sennal cuando expire el timer
             timeIntervalInMSec = nquantum;
             schedulerHandle.sa_sigaction = timer_handler;
@@ -90,7 +90,7 @@ void thread_init(long nquantum, int totalProcessInit, struct sched_t *schedulerI
             quantum.it_interval.tv_sec=0;
             quantum.it_interval.tv_usec = timeIntervalInMSec;
 
-            setitimer(ITIMER_PROF, &quantum, NULL);
+            setitimer(ITIMER_PROF, &quantum, NULL);*/
 }
 
 
@@ -101,7 +101,7 @@ int thread_create(thread_t id, int tickets, void (*rutina)(int), int arg) {
         newThread->context.uc_stack.ss_sp = malloc(STACKSIZE);
         newThread->context.uc_stack.ss_size = STACKSIZE;
         newThread->context.uc_stack.ss_flags = 0;
-        newThread->context.uc_link = &notifierContext;
+        newThread->context.uc_link = &mainContext;
         makecontext (&(newThread->context), (void (*) (void))rutina, 1,1);
      	scheduler->addTask(newThread);
 	

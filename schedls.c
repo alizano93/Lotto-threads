@@ -3,15 +3,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Structures.h"
-#include "task_t.h"
-
+#include "myThread.h"
 
 int totalProcess;
 int actualNumberOfProcess;
 int totalTickets;
 int mode;
 Thread **tasks;
-ucontext_t uctx_main;
+extern ucontext_t mainContext;
 Thread *current;
 
 void init(int totalProcessInit, int modeIn){
@@ -36,7 +35,7 @@ void reCalculateBoundaries(int taskToRemove){
 
 			Thread *actual = tasks[x];
 			actual->lowerLimit = lowerLimit;
-			actual->upperLimit = lowerLimit + actual->tickets;
+			actual->upperLimit = lowerLimit + (actual->tickets - 1);
 			lowerLimit = actual->upperLimit + 1;
 			Thread *newTask = (Thread *) malloc(sizeof(Thread));
 			memcpy(newTask, actual, sizeof(Thread));
@@ -87,15 +86,15 @@ Thread * nextTask(){
 
 void run(){
 
-
 	while(actualNumberOfProcess > 0){
 
 		current = nextTask(); //O(log(n))
-		//swapcontext(&uctx_main, &current->context);
+		printf("Election %ld\n", current->tid);
+		swapcontext(&mainContext, &current->context);
+		current->finish = 1;
 		if(current->finish){			
 			reCalculateBoundaries(current->tid); //O(n)
 		}
-
 	}
 
 }
@@ -125,7 +124,7 @@ void removeTask(int idTask){
 void manageTimer(){
 
 	if(mode == EXPROPIATIVO){
-		swapcontext(&current->context, &uctx_main);
+		swapcontext(&current->context, &mainContext);
 	}
 }
 

@@ -19,7 +19,7 @@ extern int totalProcess;
 extern int actualNumberOfProcess;
 
 static void muchoTrabajo(int n){
-    printf("imprimo parametro=%d", n);
+    printf("imprimo parametro=%d\n", n);
 
 }
 //O(3n)
