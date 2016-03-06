@@ -29,7 +29,7 @@ double arcsin(double x, int n)
     int i;
     for(i=1;i<=n;i++)
     {
-    if(i == n_torelease){
+    if(mode != EXPROPIATIVO && i == n_torelease){
         raise(SIGPROF);
     }
 	fact *= (2 * (double)i - 1)/(2 * (double)i );
