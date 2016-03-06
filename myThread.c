@@ -21,7 +21,7 @@ extern int actualNumberOfProcess;
 extern int totalTickets;
 extern struct Thread **tasks;
 
-long mode; // 1 = expropiativo 2= no expropiativo
+extern int mode; // 1 = expropiativo 2= no expropiativo
 sigset_t sigThreadMask; // para el manejo de las sennales
 int ignorarsennal;
 struct sigaction schedulerHandle; //con este es que voy a inicializar el scheduler (ver el thread_init)
@@ -87,7 +87,8 @@ void thread_init(long nquantum, int totalProcessInit, struct sched_t *schedulerI
         quantum.it_value.tv_usec = timeIntervalInMSec;
         quantum.it_interval.tv_sec=0;
         quantum.it_interval.tv_usec = timeIntervalInMSec;
-        setitimer(ITIMER_PROF, &quantum, NULL);
+        if(mode == EXPROPIATIVO)
+            setitimer(ITIMER_PROF, &quantum, NULL);
 
           /*  sigemptyset(&sigsetMask);
             sigaddset(&sigsetMask, SIGPROF); //para mandar sennal cuando expire el timer

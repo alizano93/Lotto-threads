@@ -4,6 +4,7 @@
 #include<string.h>
 #include <assert.h>
 #include <signal.h>
+#include <math.h>
 #include "Structures.h"
 #include "myThread.h"
 #include "task_t.h"
@@ -18,11 +19,29 @@ int quantum;
 extern int totalProcess;
 extern int actualNumberOfProcess;
 
-static void muchoTrabajo(int n){
-    int j;
-    for(j=0;j<100000;j++)
-        printf("imprimo parametro=%d\n", n);
+double arcsin(double x, int n)
+{
+    //Agregado por Andres
+    int n_torelease= n * quantum / 100;
+    //Fin
+    double fact,sum;
+    fact=sum=1.0;
+    int i;
+    for(i=1;i<=n;i++)
+    {
+    if(i == n_torelease){
+        raise(SIGPROF);
+    }
+	fact *= (2 * (double)i - 1)/(2 * (double)i );
+	double po = pow(x,(2*(double)i+1));
+	double factwo = po / (2*(double)i+1);
+	sum += fact * (pow(x,(2*(double)i+1)) / (2*(double)i+1));
+    }
+    return sum;
+}
 
+static void trabajo(int n){
+    printf("resultado final = 2 arcsin (1) = %lf \n", 2*arcsin(1.0,n*50));
 }
 //O(3n)
 
@@ -171,7 +190,7 @@ int main(int argc, char * argv[]){
 	int j;
 
 	for(j = 0; j < nThreads; j++){
-		thread_create(j, ticketsByThread[j] , muchoTrabajo, j + 1);	//creating threads	
+		thread_create(j, ticketsByThread[j] , trabajo, workByThread[j]);	//creating threads
 	}
 	thread_join();
 	//thread_yield();

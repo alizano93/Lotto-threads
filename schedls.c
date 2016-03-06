@@ -89,7 +89,7 @@ void run(){
 	while(actualNumberOfProcess > 0){
 
 		current = nextTask(); //O(log(n))
-		printf("Election %ld\n", current->tid);
+		//printf("Election %ld\n", current->tid);
 		swapcontext(&mainContext, &current->context);
 		//current->finish = 1;
 		if(current->finish){			
@@ -123,9 +123,9 @@ void removeTask(int idTask){
 
 void manageTimer(){
 
-	if(mode == EXPROPIATIVO){
+	//if(mode == EXPROPIATIVO){
 		swapcontext(&current->context, &mainContext);
-	}
+	//}
 }
 
 
