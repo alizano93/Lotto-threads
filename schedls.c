@@ -55,27 +55,29 @@ void reCalculateBoundaries(int taskToRemove){
 Thread * nextTask(){
 	
 	int limiteInferior = 0;
-	int limiteSuperior = totalTickets;
+	int limiteSuperior = actualNumberOfProcess - 1;
 
 	int winnerTicket = rand() % totalTickets; //Sacar numero random
 	//binary search to find the winner
 	while(limiteInferior <= limiteSuperior){
 
 		int medio = (limiteInferior + limiteSuperior)/2;
-		
 		Thread *actual = tasks[medio];
-		
 		if(winnerTicket < actual->lowerLimit){
 			
 			limiteSuperior = medio - 1;
 				
-		}
-		if(winnerTicket > actual->upperLimit){
-			limiteInferior = medio +1;
+		}else{
+			if(winnerTicket > actual->upperLimit){
+				
+				limiteInferior = medio +1;
 			
+			}else{
+				current = actual;
+				return actual;
+			}
 		}
-		current = actual;
-		return actual;	
+			
 	}	
 
 	return NULL;
@@ -85,11 +87,11 @@ Thread * nextTask(){
 
 void run(){
 
+
 	while(actualNumberOfProcess > 0){
 
 		current = nextTask(); //O(log(n))
-		swapcontext(&uctx_main, &current->context);
-		
+		//swapcontext(&uctx_main, &current->context);
 		if(current->finish){			
 			reCalculateBoundaries(current->tid); //O(n)
 		}
@@ -101,6 +103,7 @@ void run(){
 
 
 void addTask(Thread *newTask){
+
 	tasks[actualNumberOfProcess] = newTask;
 	totalTickets += newTask->tickets;
 	int lowerBoundary = 0;
@@ -110,7 +113,8 @@ void addTask(Thread *newTask){
 		lowerBoundary = tasks[actualNumberOfProcess - 1]->upperLimit + 1;
 	}
 	newTask->lowerLimit = lowerBoundary;
-	newTask->upperLimit = lowerBoundary + newTask->tickets;
+	newTask->upperLimit = lowerBoundary + (newTask->tickets - 1);
+	actualNumberOfProcess++;
 }
 
 
@@ -135,6 +139,7 @@ struct sched_t * sched_ls_alloc(int totalProcessInit, int modeIn){
 	ls->removeTask = removeTask;
 	ls->manageTimer = manageTimer;
 	ls->init = init;
+	ls->run = run;
 	ls->init(totalProcessInit, modeIn);
 	
 	return ls;
