@@ -110,7 +110,7 @@ int thread_create(thread_t id, int tickets, void (*rutina)(int), int arg) {
 
 void thread_yield(){
 
-	scheduler->run();
+	
 	    
 //raise(SIGPROF); //con esto deberia bastar mandando la sennal se captura y cambio segun el scheduler
 }
@@ -124,6 +124,8 @@ thread_t self(){
 }
 
 int thread_join(){
+ 
+    scheduler->run();
     return 0;//espera a que todos hayan terminado
 }
 

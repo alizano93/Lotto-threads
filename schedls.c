@@ -55,7 +55,7 @@ void reCalculateBoundaries(int taskToRemove){
 Thread * nextTask(){
 	
 	int limiteInferior = 0;
-	int limiteSuperior = actualNumberOfProcess;
+	int limiteSuperior = totalTickets;
 
 	int winnerTicket = rand() % totalTickets; //Sacar numero random
 	//binary search to find the winner

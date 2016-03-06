@@ -171,7 +171,7 @@ int main(int argc, char * argv[]){
 	for(j = 0; j < nThreads; j++){
 		thread_create(j, ticketsByThread[j] , muchoTrabajo, j + 1);	//creating threads	
 	}
-	
+	thread_join();
 	//thread_yield();
 	
 	return 0;
