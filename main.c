@@ -101,7 +101,10 @@ char **splitString(char *str, const char separator){
 }
 
 void startArrayWork(char **tokens){
-	workByThread = (int*)malloc(sizeof(int) * nThreads);
+	
+	int size = sizeof(tokens) / sizeof(*tokens); //This to let receive parameters in any order.
+	//workByThread = (int*)malloc(sizeof(int) * nThreads);
+	workByThread = (int*)malloc(sizeof(int) * size);
 	int i;
         for (i = 0; i < nThreads; i++){
 		
@@ -112,7 +115,10 @@ void startArrayWork(char **tokens){
 
 void startArrayTickets(char **tokens){
 		
-	ticketsByThread = (int*)malloc(sizeof(int) * nThreads);
+	int size = sizeof(tokens) / sizeof(*tokens);//This to let receive parameters in any order.
+	
+	//ticketsByThread = (int*)malloc(sizeof(int) * nThreads);
+	ticketsByThread = (int*)malloc(sizeof(int) * size);
 	int i;
         for (i = 0; i < nThreads; i++){
             ticketsByThread[i] = atoi(tokens[i]);
