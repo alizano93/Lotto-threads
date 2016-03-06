@@ -39,6 +39,7 @@ struct sched_t {
     void (*removeTask)(int);
     void (*manageTimer)();
     void (*init)(int, int);
+    void (*run)();
     
 };
 

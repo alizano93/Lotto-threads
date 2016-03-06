@@ -124,8 +124,7 @@ thread_t self(){
 }
 
 int thread_join(){
- 
-    scheduler->run();
+	scheduler->run();
     return 0;//espera a que todos hayan terminado
 }
 
