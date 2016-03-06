@@ -1,9 +1,12 @@
+
 #include<stdio.h>
 #include<stdlib.h>
 #include<string.h>
 #include <assert.h>
+#include <signal.h>
+#include "Structures.h"
+#include "myThread.h"
 #include "task_t.h"
-#include "sched.h"
 
 int nThreads;
 int mode;
@@ -11,75 +14,92 @@ int *ticketsByThread;
 int *workByThread;
 int quantum;
 
-char** str_split(char* a_str, const char a_delim)
-{
-    char** result    = 0;
-    size_t count     = 0;
-    char* tmp        = a_str;
-    char* last_comma = 0;
-    char delim[2];
-    delim[0] = a_delim;
-    delim[1] = 0;
 
-    /* Count how many elements will be extracted. */
-    while (*tmp)
-    {
-        if (a_delim == *tmp)
-        {
-            count++;
-            last_comma = tmp;
-        }
-        tmp++;
-    }
+extern int totalProcess;
+extern int actualNumberOfProcess;
 
-    /* Add space for trailing token. */
-    count += last_comma < (a_str + strlen(a_str) - 1);
+static void muchoTrabajo(int n){
+    printf("imprimo parametro=%d", n);
 
-    /* Add space for terminating null string so caller
-       knows where the list of returned strings ends. */
-    count++;
-
-    result = malloc(sizeof(char*) * count);
-
-    if (result)
-    {
-        size_t idx  = 0;
-        char* token = strtok(a_str, delim);
-
-        while (token)
-        {
-            assert(idx < count);
-            *(result + idx++) = strdup(token);
-            token = strtok(0, delim);
-        }
-        assert(idx == count - 1);
-        *(result + idx) = 0;
-    }
-
-    return result;
 }
+//O(3n)
 
+char **splitString(char *str, const char separator){
+
+	int count = 1;
+	int length = strlen(str);
+	int x;
+	for(x = 0; x < length; x++){
+
+		if(str[x] == separator){
+
+			count++;
+		}
+	}
+
+	int sizes[count];
+	int lowerBound = 0;
+	int c;
+	
+	for(x = 0, c = 0; x < length; x++){
+
+		if(str[x] == separator){
+
+			sizes[c] = (x - lowerBound);
+			lowerBound = x + 1;
+			c++;
+		}
+	}	
+	sizes[c] = (x - lowerBound);
+	
+	int j = 0;
+	char **tokens = malloc(sizeof(char*) * count);
+	x = 0;
+	
+	while(j < count){
+
+		int sizeWord = sizes[j];
+		char *newWord = malloc(sizeof(char) * (sizeWord + 1));
+		int k, t;
+		for(k = 0, t = 0; k < sizeWord; k++){
+			newWord[t] = str[x];
+			t++;
+			x++;
+		}
+		if(newWord[k-1] == '\n'){
+			newWord[k-1] = '\0';
+		}else{
+			newWord[k] = '\0';
+		}
+		x++;//jump the separator
+		tokens[j] = newWord; 
+		j++;
+	}
+	return tokens;
+
+}
 
 void startArrayWork(char **tokens){
 	workByThread = (int*)malloc(sizeof(int) * nThreads);
 	int i;
         for (i = 0; i < nThreads; i++){
+		
             workByThread[i] = atoi(tokens[i]);
-            free(*(tokens + i));
         }
+	free(tokens);
 }
 
 void startArrayTickets(char **tokens){
+		
 	ticketsByThread = (int*)malloc(sizeof(int) * nThreads);
 	int i;
         for (i = 0; i < nThreads; i++){
             ticketsByThread[i] = atoi(tokens[i]);
-            free(*(tokens + i));
         }
-}
+	free(tokens);
+}	
 
 void readFileProperties(char *path){
-
 
     FILE * fp;
     char * line = NULL;
@@ -94,9 +114,8 @@ void readFileProperties(char *path){
     char **ticketsByT;
 	
     while ((read = getline(&line, &len, fp)) != -1) {
-	
-        char **tokens = str_split(line, '=');
-	
+        char **tokens = splitString(line, '=');
+
 	if(!strcmp(tokens[0], "mode")){
 
 		if(!strcmp(tokens[1], "EXPROPIATIVO")){
@@ -119,11 +138,10 @@ void readFileProperties(char *path){
 				free(tokens);
 			}else{
 
-				if(!strcmp(tokens[0], "workByThreads")){
-
-					workByT = str_split(tokens[1], ';');
+				if(!strcmp(tokens[0], "workByThread")){
+					workByT = splitString(tokens[1], ';');
 				}else{
-					ticketsByT = str_split(tokens[1], ';');
+					ticketsByT = splitString(tokens[1], ';');
 				}
 			}
 			
@@ -134,39 +152,27 @@ void readFileProperties(char *path){
     }
 	 
     startArrayWork(workByT);
-   startArrayTickets(ticketsByT);
+    startArrayTickets(ticketsByT);
 
     free(line);
     fclose(fp);
 }
 
-void rutina(void){
-
-}
-
 int main(int argc, char * argv[]){
-
+	
 	readFileProperties(argv[1]);
-	
-	struct sched_t *sch = sched_ls_alloc();
-	struct task_t *t = (struct task_t*)malloc(sizeof(struct task_t));
-	t->id = 1;
-	t->tickets = 100;
-	t->lowerLimit = 0;
-	t->upperLimit = 100;
-	ucontext_t context;
-	getcontext(&context);
-        context.uc_stack.ss_sp = malloc(16);
-        context.uc_stack.ss_size = 16;
-        context.uc_stack.ss_flags = 0;
-        makecontext(&(context),rutina, 0);
-	sch->init(1, 1);
-	sch->addTask(t);
-	struct task_t *next = sch->nextTask();
-	
-	int finish;
 
-	printf("Next process to do: %d\n", next->id);
+	struct sched_t *sch = sched_ls_alloc(nThreads, mode); //creating scheduler	
+
+	thread_init(quantum, nThreads, sch); //creating thread lib
+	
+	int j;
+
+	for(j = 0; j < nThreads; j++){
+		thread_create(j, ticketsByThread[j] , muchoTrabajo, j + 1);	//creating threads	
+	}
+	
+	//thread_yield();
 	
 	return 0;
 }

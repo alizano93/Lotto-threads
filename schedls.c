@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "sched.h"
+#include "Structures.h"
 #include "task_t.h"
 
 
@@ -10,14 +10,14 @@ int totalProcess;
 int actualNumberOfProcess;
 int totalTickets;
 int mode;
-struct task_t **tasks;
+Thread **tasks;
 ucontext_t uctx_main;
-struct task_t *current;
+Thread *current;
 
 void init(int totalProcessInit, int modeIn){
 
 	totalProcess = totalProcessInit;
-	tasks = (struct task_t **) malloc (sizeof(struct task_t*) * totalProcess);		
+	tasks = (Thread **) malloc (sizeof(Thread*) * totalProcess);		
 	actualNumberOfProcess = 0;
 	mode = modeIn;
 	srand (time(NULL));
@@ -25,21 +25,21 @@ void init(int totalProcessInit, int modeIn){
 
 void reCalculateBoundaries(int taskToRemove){
 
-	struct task_t **auxArray = (struct task_t **) malloc((actualNumberOfProcess - 1) * sizeof(struct task_t *));
+	Thread **auxArray = (Thread **) malloc((actualNumberOfProcess - 1) * sizeof(Thread *));
 	
 	int x, dx = 0;
 	int lowerLimit = 0;
 	int upperLimit = 0;
 	for(x = 0; x < actualNumberOfProcess; x++){
 		
-		if(tasks[x]->id != taskToRemove){
+		if(tasks[x]->tid != taskToRemove){
 
-			struct task_t *actual = tasks[x];
+			Thread *actual = tasks[x];
 			actual->lowerLimit = lowerLimit;
 			actual->upperLimit = lowerLimit + actual->tickets;
 			lowerLimit = actual->upperLimit + 1;
-			struct task_t *newTask = (struct task_t *) malloc(sizeof(struct task_t));
-			memcpy(newTask, actual, sizeof(struct task_t));
+			Thread *newTask = (Thread *) malloc(sizeof(Thread));
+			memcpy(newTask, actual, sizeof(Thread));
 			auxArray[dx] = newTask;
 			dx++;
 		}else{
@@ -52,7 +52,7 @@ void reCalculateBoundaries(int taskToRemove){
 	tasks = auxArray;
 }
 
-struct task_t * nextTask(){
+Thread * nextTask(){
 	
 	int limiteInferior = 0;
 	int limiteSuperior = actualNumberOfProcess;
@@ -63,7 +63,7 @@ struct task_t * nextTask(){
 
 		int medio = (limiteInferior + limiteSuperior)/2;
 		
-		struct task_t *actual = tasks[medio];
+		Thread *actual = tasks[medio];
 		
 		if(winnerTicket < actual->lowerLimit){
 			
@@ -82,15 +82,16 @@ struct task_t * nextTask(){
 	
 }
 
+
 void run(){
 
 	while(actualNumberOfProcess > 0){
 
-		current = nextTask();
+		current = nextTask(); //O(log(n))
 		swapcontext(&uctx_main, &current->context);
 		
 		if(current->finish){			
-			reCalculateBoundaries(current->id);
+			reCalculateBoundaries(current->tid); //O(n)
 		}
 
 	}
@@ -99,7 +100,7 @@ void run(){
 
 
 
-void addTask(struct task_t *newTask){
+void addTask(Thread *newTask){
 	tasks[actualNumberOfProcess] = newTask;
 	totalTickets += newTask->tickets;
 	int lowerBoundary = 0;
@@ -125,15 +126,16 @@ void manageTimer(){
 }
 
 
-struct sched_t * sched_ls_alloc(){
+struct sched_t * sched_ls_alloc(int totalProcessInit, int modeIn){
 
+	
 	struct sched_t * ls = (struct sched_t * ) malloc(sizeof(struct sched_t));
 	ls->nextTask = nextTask;
 	ls->addTask = addTask;
 	ls->removeTask = removeTask;
 	ls->manageTimer = manageTimer;
 	ls->init = init;
-	
+	ls->init(totalProcessInit, modeIn);
 	
 	return ls;
 }

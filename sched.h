@@ -2,14 +2,14 @@
 
 #ifndef __SCHED_H__
 #define __SCHED_H__
-struct task_t;
+
+#include "Structures.h"
 enum{EXPROPIATIVO, NO_EXPROPIATIVO};
 /* scheduler struct */
 struct sched_t {
-    struct task_t* (*nextTask) (void);
     void (*addTask)(struct task_t*);
     void (*removeTask)(int);
-    void (*manageTimer)(int);
+    void (*manageTimer)();
     void (*init)(int, int);
     
 };
