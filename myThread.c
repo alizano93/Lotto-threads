@@ -32,6 +32,15 @@ sigset_t sigsetMask;
 extern Thread * current;
 ucontext_t mainContext;
 
+void stop_timer(){
+    struct itimerval zero_timer = { 0 };
+    setitimer(ITIMER_PROF, &zero_timer, &quantum);
+}
+
+void start_timer(){
+    setitimer(ITIMER_PROF, &quantum, NULL);
+}
+
 void generalFunction(void (*rutine)(int),int arg){
     (*rutine)(arg);
     current->finish = 1;
@@ -87,8 +96,8 @@ void thread_init(long nquantum, int totalProcessInit, struct sched_t *schedulerI
         quantum.it_value.tv_usec = timeIntervalInMSec;
         quantum.it_interval.tv_sec=0;
         quantum.it_interval.tv_usec = timeIntervalInMSec;
-        if(mode == EXPROPIATIVO)
-            setitimer(ITIMER_PROF, &quantum, NULL);
+        /*if(mode == EXPROPIATIVO)
+            setitimer(ITIMER_PROF, &quantum, NULL);*/
 
           /*  sigemptyset(&sigsetMask);
             sigaddset(&sigsetMask, SIGPROF); //para mandar sennal cuando expire el timer

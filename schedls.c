@@ -42,7 +42,7 @@ void reCalculateBoundaries(char *taskToRemove){
 			actual->upperLimit = lowerLimit + (actual->tickets - 1);
 			lowerLimit = actual->upperLimit + 1;
 			Thread *newTask = (Thread *) malloc(sizeof(Thread));
-			memcpy(newTask, actual, sizeof(Thread));
+			memcpy(newTask, actual, sizeof(Thread));			
 			auxArray[dx] = newTask;
 			dx++;
 		}else{
@@ -53,6 +53,7 @@ void reCalculateBoundaries(char *taskToRemove){
 	actualNumberOfProcess--;
 	free(tasks);
 	tasks = auxArray;
+	
 }
 
 Thread * nextTask(){
@@ -87,19 +88,24 @@ Thread * nextTask(){
 	
 }
 
-
 void run(){
 
 	while(actualNumberOfProcess > 0){
-
 		current = nextTask(); //O(log(n))
-		//printf("Election %ld\n", current->tid);
+		//printf("Election %s\n", current->tid);
 
 		//actualizar estado del que va a ser el current
 		update_row_active(current->tid);
-
-		swapcontext(&mainContext, &current->context);
+		if(mode == EXPROPIATIVO){
+			start_timer();
+			swapcontext(&mainContext, &current->context);
+			stop_timer();
+		}else{
+			swapcontext(&mainContext, &current->context);
+			
+		}
 		
+		//printf("Return their context %s\n", current->tid);
 		//actualizar estado del que va a dejar de ser current
 //		update_row_inactive_completed(current->tid, current->finish);
 
@@ -111,7 +117,6 @@ void run(){
 			reCalculateBoundaries(current->tid); //O(n)
 		}
 	}
-
 }
 
 
@@ -137,10 +142,7 @@ void removeTask(int idTask){
 }
 
 void manageTimer(){
-
-	//if(mode == EXPROPIATIVO){
-		swapcontext(&current->context, &mainContext);
-	//}
+	swapcontext(&current->context, &mainContext);
 }
 
 void updateWork(float percent, double result){
