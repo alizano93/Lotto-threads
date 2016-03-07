@@ -42,5 +42,9 @@ static void muchoTrabajo(int n);
 //actualiza el porcentaje de progreso y el resultado temporal (y final) para cada termino del calculo
 void updateThread(float percent, double result);
 
+char* getCurrentid();
+float getCurrentPercent();
+double getCurrentResult();
+int isFinished();
 #endif //MY_THREAD_H
 

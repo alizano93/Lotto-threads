@@ -110,8 +110,8 @@ char **splitString(char *str, const char separator){
 void startArrayWork(char **tokens){
 	
 	int size = sizeof(tokens) / sizeof(*tokens); //This to let receive parameters in any order.
-	//workByThread = (int*)malloc(sizeof(int) * nThreads);
-	workByThread = (int*)malloc(sizeof(int) * size);
+	workByThread = (int*)malloc(sizeof(int) * nThreads);
+	//workByThread = (int*)malloc(sizeof(int) * size);
 	int i;
         for (i = 0; i < nThreads; i++){
 		
@@ -227,10 +227,10 @@ int main(int argc, char * argv[]){
 //        g_thread_init( NULL );
 
     /* Secure gtk */
-    gdk_threads_init();
+  //  gdk_threads_init();
 
     /* Obtain gtk's global lock */
-    gdk_threads_enter();
+  //  gdk_threads_enter();
 
 
 
@@ -238,9 +238,9 @@ int main(int argc, char * argv[]){
 
 	gtk_init(NULL, NULL);
 
-//	struct sched_t *sch = sched_ls_alloc(nThreads, mode); //creating scheduler	
+	struct sched_t *sch = sched_ls_alloc(nThreads, mode); //creating scheduler
 
-//	thread_init(quantum, nThreads, sch); //creating thread lib
+	thread_init(quantum, nThreads, sch); //creating thread lib
 
 		
 
@@ -256,6 +256,7 @@ int main(int argc, char * argv[]){
 		char *id_char = malloc(sizeof(char) * 5);
 		sprintf(id_char, "%d", t_id);
 		ids[j] = id_char;
+		thread_create(id_char, ticketsByThread[j] , trabajo, workByThread[j]);
 		add_row(t_id, id_char);
 	}
 
@@ -275,7 +276,7 @@ int main(int argc, char * argv[]){
 	show_ui();
 
 	/* Create new thread */
-    thread = g_thread_new("lottery", thread_func,NULL);
+   // thread = g_thread_new("lottery", thread_func,NULL);
 
 	
 
@@ -287,11 +288,11 @@ int main(int argc, char * argv[]){
 //	thread_join();
 
 	gtk_main();// LOOP CONFLICT WITH JOIN????
-
-
+    //thread_yield();
+   // while(1){printf("llega a este while");}
 
 	/* Release gtk's global lock */
-    gdk_threads_leave();
+   // gdk_threads_leave();
 
 
 	

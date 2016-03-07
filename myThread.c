@@ -65,14 +65,14 @@ struct Thread* getNewThreadnoStack(int tickets, char *id)
 struct sched_t *scheduler;
 
 void timer_handler(int sigNum){
-
+if(ignorarsennal != 1)
 	scheduler->manageTimer();
 		
 }
 
 
 void thread_init(long nquantum, int totalProcessInit, struct sched_t *schedulerIn) {
-	
+	    ignorarsennal = 1;
         scheduler = schedulerIn;
         sigemptyset(&sigsetMask);
         sigaddset(&sigsetMask,SIGPROF);
@@ -124,7 +124,8 @@ int thread_create(char *id, int tickets, void (*rutina)(int), int arg) {
 
 void thread_yield(){
 
-	
+	ignorarsennal=0;
+	raise(SIGPROF);
 	    
 //raise(SIGPROF); //con esto deberia bastar mandando la sennal se captura y cambio segun el scheduler
 }
@@ -140,6 +141,19 @@ thread_t self(){
 int thread_join(){
 	scheduler->run();
     return 0;//espera a que todos hayan terminado
+}
+char* getCurrentid(){
+    return current->tid;
+}
+float getCurrentPercent(){
+    return current->percent;
+}
+
+double getCurrentResult(){
+    return current->result;
+}
+int isFinished(){
+    return current->finish;
 }
 
 void updateThread(float percent, double result){

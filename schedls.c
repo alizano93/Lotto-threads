@@ -12,6 +12,7 @@ int totalTickets;
 int mode;
 Thread **tasks;
 extern ucontext_t mainContext;
+extern sigset_t sigsetMask;
 Thread *current;
 
 int completed;
@@ -90,27 +91,30 @@ Thread * nextTask(){
 
 void run(){
 
-	while(actualNumberOfProcess > 0){
+	//while(actualNumberOfProcess > 0){
 
 		current = nextTask(); //O(log(n))
 		//printf("Election %ld\n", current->tid);
 
 		//actualizar estado del que va a ser el current
-		update_row_active(current->tid);
 
+		//update_row_active(current->tid);
 		swapcontext(&mainContext, &current->context);
-		
-		//actualizar estado del que va a dejar de ser current
-//		update_row_inactive_completed(current->tid, current->finish);
 
-		update_row_work(current->tid, current->percent, current->result, current->finish);
+		//actualizar estado del que va a dejar de ser current
+		//update_row_inactive_completed(current->tid, current->finish);
+
+
+		//update_row_work(current->tid, current->percent, current->result, current->finish);
+
 
 		//current->finish = 1;
 		if(current->finish){
-			completed++;			
+	//		completed++;
 			reCalculateBoundaries(current->tid); //O(n)
 		}
-	}
+
+	//}
 
 }
 
