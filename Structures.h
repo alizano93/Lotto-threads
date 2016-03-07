@@ -40,6 +40,7 @@ struct sched_t {
     void (*manageTimer)();
     void (*init)(int, int);
     void (*run)();
+    void (*updateWork)(float, double);
     
 };
 
