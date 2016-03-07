@@ -274,16 +274,24 @@ void init_table(){
 
 }
 
-void yield(GtkWidget *widget,gpointer data){
 
+static gboolean progress_timeout( gpointer data ){
+	printf("entro aqui\n");  
+//update_row_active(getCurrentid());
+  //update_row_work(getCurrentid(), getCurrentPercent(), getCurrentResult(), isFinished());
+  return TRUE;
+} 
+
+void yield(GtkWidget *widget,gpointer data){
+int timer = g_timeout_add (0, progress_timeout, NULL);
     while(getActualNumberOfProcess() > 0){
 
         //if(i<4){
 	updateCurrentScheduler();
-        update_row_active(getCurrentid());
-	thread_join();
-        update_row_work(getCurrentid(), getCurrentPercent(), getCurrentResult(), isFinished());
 	
+	thread_join();
+	//g_source_remove (timer);
+        
        // g_print("id= %s percent= %f result= %lf is finished= %d\n",getCurrentid(),getCurrentPercent(),getCurrentResult(),isFinished());
         //}
         
