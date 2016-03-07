@@ -26,7 +26,7 @@ void init(int totalProcessInit, int modeIn){
 	completed = 0;
 }	
 
-void reCalculateBoundaries(int taskToRemove){
+void reCalculateBoundaries(char *taskToRemove){
 
 	Thread **auxArray = (Thread **) malloc((actualNumberOfProcess - 1) * sizeof(Thread *));
 	
@@ -96,12 +96,14 @@ void run(){
 		//printf("Election %ld\n", current->tid);
 
 		//actualizar estado del que va a ser el current
-//		update_row_active(current->tid);
+		update_row_active(current->tid);
 
 		swapcontext(&mainContext, &current->context);
 		
 		//actualizar estado del que va a dejar de ser current
 //		update_row_inactive_completed(current->tid, current->finish);
+
+		update_row_work(current->tid, current->percent, current->result, current->finish);
 
 		//current->finish = 1;
 		if(current->finish){
@@ -142,7 +144,7 @@ void manageTimer(){
 }
 
 void updateWork(float percent, double result){
-	update_row_work(current->tid, percent, result);
+//	update_row_work(current->tid, percent, result);
 }
 
 

@@ -15,7 +15,7 @@ int mode;
 int *ticketsByThread;
 int *workByThread;
 int quantum;
-
+char** ids;
 
 extern int totalProcess;
 extern int actualNumberOfProcess;
@@ -40,7 +40,8 @@ double arcsin(double x, int n)
 
 	//Agregado por Daniel
 	float percent = (float)i / (float)n;
-//	updateThread(percent, sum);
+	
+	updateThread(percent, sum);
 	//Fin
     }
     return sum;
@@ -191,24 +192,76 @@ void readFileProperties(char *path){
     fclose(fp);
 }
 
-int main(int argc, char * argv[]){
-	
-	
 
-	readFileProperties(argv[1]);
-
-	gtk_init(NULL, NULL);
-
-	struct sched_t *sch = sched_ls_alloc(nThreads, mode); //creating scheduler	
+static gpointer
+thread_func( gpointer data )
+{
+    	struct sched_t *sch = sched_ls_alloc(nThreads, mode); //creating scheduler	
 
 	thread_init(quantum, nThreads, sch); //creating thread lib
 
+	int j;
+
+	for(j = 0; j < nThreads; j++){
+		thread_create(ids[j], ticketsByThread[j] , trabajo, workByThread[j]);	//creating threads
+//		add_row(t_id);
+	}
+
+	thread_join();
+
+    	return( NULL );
+}
+
+
+
+
+int main(int argc, char * argv[]){
+	
+	GThread   *thread;
+    GError    *error = NULL;
+
+	readFileProperties(argv[1]);
+
+	/* Secure glib */
+//    if( ! g_thread_supported() )
+//        g_thread_init( NULL );
+
+    /* Secure gtk */
+    gdk_threads_init();
+
+    /* Obtain gtk's global lock */
+    gdk_threads_enter();
+
+
+
+	
+
+	gtk_init(NULL, NULL);
+
+//	struct sched_t *sch = sched_ls_alloc(nThreads, mode); //creating scheduler	
+
+//	thread_init(quantum, nThreads, sch); //creating thread lib
+
 		
 
-//	create_UI(nThreads);
+	create_UI(nThreads);
+
+	ids = malloc(sizeof(char*) * nThreads);
+
+	int j;
+	for(j = 0; j < nThreads; j++){
+		int t_id = j + 1;
+//		thread_create(t_id, ticketsByThread[j] , trabajo, workByThread[j]);	//creating threads
+		
+		char *id_char = malloc(sizeof(char) * 5);
+		sprintf(id_char, "%d", t_id);
+		ids[j] = id_char;
+		add_row(t_id, id_char);
+	}
+
 //	show_ui();
 	
-	
+/*	
 	int j;
 
 	for(j = 0; j < nThreads; j++){
@@ -216,13 +269,30 @@ int main(int argc, char * argv[]){
 		thread_create(t_id, ticketsByThread[j] , trabajo, workByThread[j]);	//creating threads
 //		add_row(t_id);
 	}
+*/
 
-	//show_ui();
+
+	show_ui();
+
+	/* Create new thread */
+    thread = g_thread_new("lottery", thread_func,NULL);
+
 	
 
-	thread_join();
 
-//	gtk_main();// LOOP CONFLICT WITH JOIN????
+	
+	
+//	gdk_threads_enter();
+
+//	thread_join();
+
+	gtk_main();// LOOP CONFLICT WITH JOIN????
+
+
+
+	/* Release gtk's global lock */
+    gdk_threads_leave();
+
 
 	
 	//thread_yield();

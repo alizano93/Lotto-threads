@@ -23,7 +23,7 @@
 void thread_init(long nquantum, int totalProcessInit, struct sched_t *);
 
 //creo el contexto, lo meto a la cola de los threads devuelvo 1 si funciono todo
-int thread_create(thread_t id, int tickets, void (*rutina)(int), int arg);
+int thread_create(char *id, int tickets, void (*rutina)(int), int arg);
 
 //con esto deberia bastar mandando la sennal se captura y cambio segun el scheduler
 void thread_yield();

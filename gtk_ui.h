@@ -3,20 +3,20 @@
 typedef struct row_struct_t
 {
     int id_int;
-    
+    char* id_char;
     GtkWidget* id;
     GtkWidget* progress;
     GtkWidget* status;
     GtkWidget* result;
 } row_struct_t;
 
-void update_row_active(int);
+void update_row_active(char*);
 
-void update_row_inactive_completed(int, int);
+//void update_row_inactive_completed(char*, int);
 
-void update_row_work(int, float, double);
+void update_row_work(char*, float, double, int);
 
-void add_row(int);
+void add_row(int, char*);
 
 void init_table();
 
