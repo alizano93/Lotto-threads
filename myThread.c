@@ -50,12 +50,12 @@ int getNextThreadId(){
     return ++currentId;
 }
 
-struct Thread* getNewThreadnoStack(int tickets)
+struct Thread* getNewThreadnoStack(int tickets, char *id)
 {
     struct Thread *newThread = (struct Thread *)malloc(sizeof(struct Thread));
  
     newThread->tickets = tickets;
-    newThread->tid = getNextThreadId();
+    newThread->tid = id;	//getNextThreadId();
     newThread->finish = 0;
 	
     return newThread;
@@ -108,9 +108,9 @@ void thread_init(long nquantum, int totalProcessInit, struct sched_t *schedulerI
 }
 
 
-int thread_create(thread_t id, int tickets, void (*rutina)(int), int arg) {
+int thread_create(char *id, int tickets, void (*rutina)(int), int arg) {
 	
-        struct Thread *newThread = getNewThreadnoStack(tickets);
+        struct Thread *newThread = getNewThreadnoStack(tickets, id);
         getcontext(&(newThread->context));
         newThread->context.uc_stack.ss_sp = malloc(STACKSIZE);
         newThread->context.uc_stack.ss_size = STACKSIZE;
@@ -143,7 +143,8 @@ int thread_join(){
 }
 
 void updateThread(float percent, double result){
-	scheduler->updateWork(percent, result);
+	current->percent = percent;
+	current->result = 2 * result;
 }
 
 

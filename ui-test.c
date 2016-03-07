@@ -1,10 +1,10 @@
-#include "gtk_ui.h"
+#include "backup_gtk_ui.h"
 
 int main(int argc, char * argv[]){
 
 	int nThreads = 5;
 	
-	gtk_init(NULL, NULL);
+	gtk_init(NULL,NULL);
 	
 	create_UI(nThreads);
 

@@ -26,34 +26,50 @@ static gboolean inc_progress(gpointer data){
 }
 */
 
-void update_row_active(int id_int){
+void update_row_active(char *id_char){
+
+//	printf("%d", id_int);
+
+	
 
 	row_struct_t* thread;
 
-	char id_char[5];
-	sprintf(id_char, "%d", id_int);
+//	char id_char[5];
+//	sprintf(id_char, "%d", id_int);
+
+//	printf("%s", id_char);
 
 	int error = hashmap_get(mymap, id_char, (void**)(&thread));
 
         /* Make sure the value was both found and the correct number */
+
+//	printf("%d", error);
+
         assert(error==MAP_OK);
-        assert(thread->id_int==id_int);
+        assert(thread->id_char==id_char);
+
+//	gdk_threads_enter();
 
 	gtk_label_set_text (GTK_LABEL (thread->status), "ACTIVE");
-}
 
-void update_row_inactive_completed(int id_int, int finish){
+//	gdk_flush ();
+//	gdk_threads_leave();
+}
+/*
+void update_row_inactive_completed(char *id_char, int finish){
+
+	
 
 	row_struct_t* thread;
 
-	char id_char[5];
-	sprintf(id_char, "%d", id_int);
+//	char id_char[5];
+//	sprintf(id_char, "%d", id_int);
 
 	int error = hashmap_get(mymap, id_char, (void**)(&thread));
 
-        /* Make sure the value was both found and the correct number */
+        // Make sure the value was both found and the correct number
         assert(error==MAP_OK);
-        assert(thread->id_int==id_int);
+        assert(thread->id_char==id_char);
 
 	char *st;
 	if(finish == 1){
@@ -62,25 +78,43 @@ void update_row_inactive_completed(int id_int, int finish){
 		st = "INACTIVE";
 	}
 
+	gdk_threads_enter();
+
 	gtk_label_set_text (GTK_LABEL (thread->status), st);
+
+//	gdk_flush ();
+	gdk_threads_leave();
 }
+*/
 
 
 
 
+void update_row_work(char *id_char, float percent, double result, int finish){
 
-void update_row_work(int id_int, float percent, double result){
+
 
 	row_struct_t* thread;
 
-	char id_char[5];
-	sprintf(id_char, "%d", id_int);
+//	char id_char[5];
+//	sprintf(id_char, "%d", id_int);
 
 	int error = hashmap_get(mymap, id_char, (void**)(&thread));
 
         /* Make sure the value was both found and the correct number */
         assert(error==MAP_OK);
-        assert(thread->id_int==id_int);
+        assert(thread->id_char==id_char);
+
+	char *st;
+	if(finish == 1){
+		st = "COMPLETED";
+	}else{
+		st = "INACTIVE";
+	}
+
+//	gdk_threads_enter();
+
+	gtk_label_set_text (GTK_LABEL (thread->status), st);
 
 	gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(thread->progress), percent);
 	char c[3];
@@ -90,6 +124,9 @@ void update_row_work(int id_int, float percent, double result){
 	char d[60];
 	sprintf(d, "%.50f", result);
 	gtk_label_set_text (GTK_LABEL (thread->result), d);
+
+//	gdk_flush ();
+//	gdk_threads_leave();
 }
 
 /*
@@ -124,7 +161,7 @@ void update_row(map_t mymap, Thread* current){
 }
 */
 
-void add_row(int id_int){
+void add_row(int id_int, char *id_char){
 
 	int bar_width = 30;
 	int bar_length = 450;
@@ -181,13 +218,18 @@ void add_row(int id_int){
 	thread = malloc(sizeof(row_struct_t));
 
 	thread->id_int = id_int;
+	thread->id_char = id_char;
 	thread->id = id;
 	thread->progress = progress;
 	thread->status = status;
 	thread->result = result;
 
-	char id_char[5];
-	sprintf(id_char, "%d", id_int);
+//	printf("%d", id_int);
+
+//	char id_char[5];
+//	sprintf(id_char, "%d", id_int);
+
+//	printf("%s", id_char);
 
 	int error = hashmap_put(mymap, id_char, thread);
         assert(error==MAP_OK);

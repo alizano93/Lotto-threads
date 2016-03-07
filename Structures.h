@@ -14,16 +14,18 @@
 typedef long thread_t;
 
 typedef struct Thread{
-    thread_t tid;
+    char *tid;
     ucontext_t context;
     int tickets;
     int lowerLimit;
     int upperLimit;
     int finish;
+    float percent;
+    double result;
 
 }Thread;
 
-struct Thread* getNewThreadnoStack(int);
+struct Thread* getNewThreadnoStack(int, char*);
 struct Thread* getNewThreadwithStack();
 //Aqui puede crear las estructuras para manejar el scheduler y los hilos. seria bueno
 //tener una estructura para los blocquados, otro para los que estan en cola y otra para los terminados
