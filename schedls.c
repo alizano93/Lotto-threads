@@ -89,9 +89,13 @@ Thread * nextTask(){
 	
 }
 
-void run(){
+void updateCurrent(){
+	current = nextTask();
+}
+
+void switchContext(){
 	//while(actualNumberOfProcess > 0){
-		current = nextTask(); //O(log(n))
+		//current = nextTask(); //O(log(n))
 		//printf("Election %s\n", current->tid);
 
 		//actualizar estado del que va a ser el current
@@ -162,7 +166,8 @@ struct sched_t * sched_ls_alloc(int totalProcessInit, int modeIn){
 	ls->removeTask = removeTask;
 	ls->manageTimer = manageTimer;
 	ls->init = init;
-	ls->run = run;
+	ls->updateCurrent = updateCurrent;
+	ls->switchContext = switchContext;
 	ls->init(totalProcessInit, modeIn);
 	
 	return ls;

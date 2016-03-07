@@ -49,12 +49,11 @@ void update_row_active(char *id_char){
         assert(error==MAP_OK);
         assert(thread->id_char==id_char);
 
-	gdk_threads_enter();
-
+	//gdk_threads_enter();
 	gtk_label_set_text (GTK_LABEL (thread->status), "ACTIVE");
 
 //	gdk_flush ();
-	gdk_threads_leave();
+	//gdk_threads_leave();
 }
 /*
 void update_row_inactive_completed(char *id_char, int finish){
@@ -113,7 +112,7 @@ void update_row_work(char *id_char, float percent, double result, int finish){
 		st = "INACTIVE";
 	}
 
-	gdk_threads_enter();
+	//gdk_threads_enter();
 
 	gtk_label_set_text (GTK_LABEL (thread->status), st);
 
@@ -127,7 +126,7 @@ void update_row_work(char *id_char, float percent, double result, int finish){
 	gtk_label_set_text (GTK_LABEL (thread->result), d);
 
 //	gdk_flush ();
-	gdk_threads_leave();
+	//gdk_threads_leave();
 }
 
 /*
@@ -276,18 +275,18 @@ void init_table(){
 }
 
 void yield(GtkWidget *widget,gpointer data){
-    //ignorarsennal=0;
-    //g_print("yield");
-    int i = 5;
-    while(i--){
 
-        if(i<4){
+    while(getActualNumberOfProcess() > 0){
+
+        //if(i<4){
+	updateCurrentScheduler();
         update_row_active(getCurrentid());
+	thread_join();
         update_row_work(getCurrentid(), getCurrentPercent(), getCurrentResult(), isFinished());
-
+	
        // g_print("id= %s percent= %f result= %lf is finished= %d\n",getCurrentid(),getCurrentPercent(),getCurrentResult(),isFinished());
-        }
-        thread_join();
+        //}
+        
     }
 
 

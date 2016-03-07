@@ -33,6 +33,7 @@ double arcsin(double x, int n)
     for(i=1;i<=n;i++)
     {
     if(mode != EXPROPIATIVO && i % n_torelease == 0){
+
         raise(SIGPROF);
     }
 	fact *= (2 * (double)i - 1)/(2 * (double)i );
@@ -264,8 +265,6 @@ int main(int argc, char * argv[]){
 	struct sched_t *sch = sched_ls_alloc(nThreads, mode); //creating scheduler
 
 	thread_init(quantum, nThreads, sch); //creating thread lib
-
-		
 
 	create_UI(nThreads);
 

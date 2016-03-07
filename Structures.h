@@ -41,8 +41,10 @@ struct sched_t {
     void (*removeTask)(int);
     void (*manageTimer)();
     void (*init)(int, int);
-    void (*run)();
+    //void (*run)();
     void (*updateWork)(float, double);
+    void(*updateCurrent)();
+    void (*switchContext)();
     
 };
 

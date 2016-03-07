@@ -23,7 +23,6 @@ extern struct Thread **tasks;
 
 extern int mode; // 1 = expropiativo 2= no expropiativo
 sigset_t sigThreadMask; // para el manejo de las sennales
-int ignorarsennal;
 struct sigaction schedulerHandle; //con este es que voy a inicializar el scheduler (ver el thread_init)
 ucontext_t notifierContext; //funciona como notificador
 struct itimerval quantum; //estrutura para el timer
@@ -74,14 +73,12 @@ struct Thread* getNewThreadnoStack(int tickets, char *id)
 struct sched_t *scheduler;
 
 void timer_handler(int sigNum){
-if(ignorarsennal != 1)
 	scheduler->manageTimer();
 		
 }
 
 
 void thread_init(long nquantum, int totalProcessInit, struct sched_t *schedulerIn) {
-	    ignorarsennal = 1;
         scheduler = schedulerIn;
         sigemptyset(&sigsetMask);
         sigaddset(&sigsetMask,SIGPROF);
@@ -132,10 +129,7 @@ int thread_create(char *id, int tickets, void (*rutina)(int), int arg) {
 }
 
 void thread_yield(){
-
-	ignorarsennal=0;
 	raise(SIGPROF);
-	    
 //raise(SIGPROF); //con esto deberia bastar mandando la sennal se captura y cambio segun el scheduler
 }
 
@@ -148,7 +142,7 @@ thread_t self(){
 }
 
 int thread_join(){
-	scheduler->run();
+    scheduler->switchContext();
     return 0;//espera a que todos hayan terminado
 }
 char* getCurrentid(){
@@ -165,6 +159,15 @@ int isFinished(){
     return current->finish;
 }
 
+int getActualNumberOfProcess(){
+
+	return actualNumberOfProcess;
+}
+
+void updateCurrentScheduler(){
+
+	scheduler->updateCurrent();
+}
 void updateThread(float percent, double result){
 	current->percent = percent;
 	current->result = 2 * result;
