@@ -5,9 +5,10 @@
 //#include <gtk/gtk.h>
 #include "gtk_ui.h"
 #include "hashmap.h"
-
+#include "myThread.h"
+extern int ignorarsennal;
 static float percent = 0.0;
-
+extern Thread * current;
 map_t mymap;
 static GtkWidget *window;
 GtkWidget *table;
@@ -274,7 +275,23 @@ void init_table(){
 
 }
 
+void yield(GtkWidget *widget,gpointer data){
+    //ignorarsennal=0;
+    //g_print("yield");
+    int i = 5;
+    while(i--){
 
+        if(i<4){
+        update_row_active(getCurrentid());
+        update_row_work(getCurrentid(), getCurrentPercent(), getCurrentResult(), isFinished());
+
+       // g_print("id= %s percent= %f result= %lf is finished= %d\n",getCurrentid(),getCurrentPercent(),getCurrentResult(),isFinished());
+        }
+        thread_join();
+    }
+
+
+}
 void create_UI(int n_threads){
 
 	mymap = hashmap_new();
@@ -401,7 +418,7 @@ void create_UI(int n_threads){
 
 	GtkWidget* button = gtk_button_new_with_label("Close");
 
-	g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_widget_destroy), window);
+	g_signal_connect_swapped (button, "clicked", G_CALLBACK (yield), window);
 
 	GtkWidget* hbox_button = gtk_hbox_new(TRUE, 1);
 
