@@ -3,27 +3,32 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Structures.h"
-#include "task_t.h"
-
+#include "myThread.h"
+#include "gtk_ui.h"
 
 int totalProcess;
 int actualNumberOfProcess;
 int totalTickets;
 int mode;
 Thread **tasks;
-ucontext_t uctx_main;
+extern ucontext_t mainContext;
+extern state *states;
 Thread *current;
-
+ucontext_t *contexts;
+int completed;
+int currentId;
 void init(int totalProcessInit, int modeIn){
 
 	totalProcess = totalProcessInit;
-	tasks = (Thread **) malloc (sizeof(Thread*) * totalProcess);		
+	tasks = (Thread **) malloc (sizeof(Thread*) * totalProcess);
+	contexts = (ucontext_t *)malloc(sizeof(ucontext_t) * totalProcess);		
 	actualNumberOfProcess = 0;
 	mode = modeIn;
 	srand (time(NULL));
+	completed = 0;
 }	
 
-void reCalculateBoundaries(int taskToRemove){
+void reCalculateBoundaries(char *taskToRemove){
 
 	Thread **auxArray = (Thread **) malloc((actualNumberOfProcess - 1) * sizeof(Thread *));
 	
@@ -36,10 +41,10 @@ void reCalculateBoundaries(int taskToRemove){
 
 			Thread *actual = tasks[x];
 			actual->lowerLimit = lowerLimit;
-			actual->upperLimit = lowerLimit + actual->tickets;
+			actual->upperLimit = lowerLimit + (actual->tickets - 1);
 			lowerLimit = actual->upperLimit + 1;
 			Thread *newTask = (Thread *) malloc(sizeof(Thread));
-			memcpy(newTask, actual, sizeof(Thread));
+			memcpy(newTask, actual, sizeof(Thread));			
 			auxArray[dx] = newTask;
 			dx++;
 		}else{
@@ -50,58 +55,62 @@ void reCalculateBoundaries(int taskToRemove){
 	actualNumberOfProcess--;
 	free(tasks);
 	tasks = auxArray;
+	
 }
 
 Thread * nextTask(){
 	
 	int limiteInferior = 0;
-	int limiteSuperior = actualNumberOfProcess;
+	int limiteSuperior = actualNumberOfProcess - 1;
 
 	int winnerTicket = rand() % totalTickets; //Sacar numero random
 	//binary search to find the winner
 	while(limiteInferior <= limiteSuperior){
 
 		int medio = (limiteInferior + limiteSuperior)/2;
-		
 		Thread *actual = tasks[medio];
-		
 		if(winnerTicket < actual->lowerLimit){
 			
 			limiteSuperior = medio - 1;
 				
-		}
-		if(winnerTicket > actual->upperLimit){
-			limiteInferior = medio +1;
+		}else{
+			if(winnerTicket > actual->upperLimit){
+				
+				limiteInferior = medio +1;
 			
+			}else{
+				current = actual;
+				return actual;
+			}
 		}
-		current = actual;
-		return actual;	
+			
 	}	
 
 	return NULL;
 	
 }
-
-
+	
 void run(){
-
+	
+	//
 	while(actualNumberOfProcess > 0){
-
-		current = nextTask(); //O(log(n))
-		swapcontext(&uctx_main, &current->context);
 		
-		if(current->finish){			
-			reCalculateBoundaries(current->tid); //O(n)
+		current = nextTask(); 
+		currentId = atoi(current->tid) - 1;
+		swapcontext(&mainContext, &contexts[currentId]);	
+		if(states[currentId].finish){
+			completed++;			
+			reCalculateBoundaries(current->tid); 
 		}
-
 	}
-
 }
 
 
 
-void addTask(Thread *newTask){
+void addTask(Thread *newTask, ucontext_t context){
+
 	tasks[actualNumberOfProcess] = newTask;
+	contexts[actualNumberOfProcess] = context;
 	totalTickets += newTask->tickets;
 	int lowerBoundary = 0;
 	if(actualNumberOfProcess == 0){
@@ -110,7 +119,8 @@ void addTask(Thread *newTask){
 		lowerBoundary = tasks[actualNumberOfProcess - 1]->upperLimit + 1;
 	}
 	newTask->lowerLimit = lowerBoundary;
-	newTask->upperLimit = lowerBoundary + newTask->tickets;
+	newTask->upperLimit = lowerBoundary + (newTask->tickets - 1);
+	actualNumberOfProcess++;
 }
 
 
@@ -119,10 +129,11 @@ void removeTask(int idTask){
 }
 
 void manageTimer(){
+		swapcontext(&contexts[currentId], &mainContext);
+}
 
-	if(mode == EXPROPIATIVO){
-		swapcontext(&current->context, &uctx_main);
-	}
+void updateWork(float percent, double result){
+//	update_row_work(current->tid, percent, result);
 }
 
 
@@ -135,6 +146,7 @@ struct sched_t * sched_ls_alloc(int totalProcessInit, int modeIn){
 	ls->removeTask = removeTask;
 	ls->manageTimer = manageTimer;
 	ls->init = init;
+	ls->run = run;
 	ls->init(totalProcessInit, modeIn);
 	
 	return ls;

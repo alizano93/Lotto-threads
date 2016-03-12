@@ -2,13 +2,16 @@
 
 #ifndef __SCHED_H__
 #define __SCHED_H__
+
+#include "Structures.h"
 enum{EXPROPIATIVO, NO_EXPROPIATIVO};
 /* scheduler struct */
 struct sched_t {
-    void (*addTask)(Thread *);
+    void (*addTask)(struct task_t*, ucontext_t);
     void (*removeTask)(int);
     void (*manageTimer)();
     void (*init)(int, int);
+    void (*updateWork)(float, double);
     
 };
 

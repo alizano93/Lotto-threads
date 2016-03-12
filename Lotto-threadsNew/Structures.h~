@@ -6,16 +6,26 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define STACKSIZE 1024*8
+#define STACKSIZE 1024*1024
 
 #ifndef STRUCTURES_H
 #define	STRUCTURES_H
 
+
+typedef struct state{
+
+	int id;
+	int finish;
+	float percent;
+	double result;
+	int active;
+	
+}state;
+
 typedef long thread_t;
 
 typedef struct Thread{
-    thread_t tid;
-    ucontext_t context;
+    char *tid;
     int tickets;
     int lowerLimit;
     int upperLimit;
@@ -23,7 +33,7 @@ typedef struct Thread{
 
 }Thread;
 
-struct Thread* getNewThreadnoStack();
+struct Thread* getNewThreadnoStack(int, char*);
 struct Thread* getNewThreadwithStack();
 //Aqui puede crear las estructuras para manejar el scheduler y los hilos. seria bueno
 //tener una estructura para los blocquados, otro para los que estan en cola y otra para los terminados
@@ -35,10 +45,12 @@ enum{EXPROPIATIVO, NO_EXPROPIATIVO};
 struct sched_t {
 
     Thread *(*nextTask) (void);
-    void (*addTask)(Thread *);
+    void (*addTask)(Thread *, ucontext_t);
     void (*removeTask)(int);
     void (*manageTimer)();
     void (*init)(int, int);
+    void (*run)();
+    void (*updateWork)(float, double);
     
 };
 
