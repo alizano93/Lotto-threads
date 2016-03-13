@@ -12,14 +12,16 @@ int totalTickets;
 int mode;
 Thread **tasks;
 extern ucontext_t mainContext;
+extern state *states;
 Thread *current;
-
+ucontext_t *contexts;
 int completed;
-
+int currentId;
 void init(int totalProcessInit, int modeIn){
 
 	totalProcess = totalProcessInit;
-	tasks = (Thread **) malloc (sizeof(Thread*) * totalProcess);		
+	tasks = (Thread **) malloc (sizeof(Thread*) * totalProcess);
+	contexts = (ucontext_t *)malloc(sizeof(ucontext_t) * totalProcess);		
 	actualNumberOfProcess = 0;
 	mode = modeIn;
 	srand (time(NULL));
@@ -42,7 +44,7 @@ void reCalculateBoundaries(char *taskToRemove){
 			actual->upperLimit = lowerLimit + (actual->tickets - 1);
 			lowerLimit = actual->upperLimit + 1;
 			Thread *newTask = (Thread *) malloc(sizeof(Thread));
-			memcpy(newTask, actual, sizeof(Thread));
+			memcpy(newTask, actual, sizeof(Thread));			
 			auxArray[dx] = newTask;
 			dx++;
 		}else{
@@ -53,6 +55,7 @@ void reCalculateBoundaries(char *taskToRemove){
 	actualNumberOfProcess--;
 	free(tasks);
 	tasks = auxArray;
+	
 }
 
 Thread * nextTask(){
@@ -86,39 +89,31 @@ Thread * nextTask(){
 	return NULL;
 	
 }
-
-
+	
 void run(){
-
+	
+	activeTimer();
 	while(actualNumberOfProcess > 0){
-
-		current = nextTask(); //O(log(n))
-		//printf("Election %ld\n", current->tid);
-
-		//actualizar estado del que va a ser el current
-		update_row_active(current->tid);
-
-		swapcontext(&mainContext, &current->context);
 		
-		//actualizar estado del que va a dejar de ser current
-//		update_row_inactive_completed(current->tid, current->finish);
-
-		update_row_work(current->tid, current->percent, current->result, current->finish);
-
-		//current->finish = 1;
-		if(current->finish){
+		current = nextTask(); 
+		currentId = atoi(current->tid) - 1;
+		states[currentId].active = 1;
+		swapcontext(&mainContext, &contexts[currentId]);
+		states[currentId].active = 0;	
+		if(states[currentId].finish){
 			completed++;			
-			reCalculateBoundaries(current->tid); //O(n)
+			reCalculateBoundaries(current->tid); 
 		}
 	}
-
+	//stopTimer(timer);
 }
 
 
 
-void addTask(Thread *newTask){
+void addTask(Thread *newTask, ucontext_t context){
 
 	tasks[actualNumberOfProcess] = newTask;
+	contexts[actualNumberOfProcess] = context;
 	totalTickets += newTask->tickets;
 	int lowerBoundary = 0;
 	if(actualNumberOfProcess == 0){
@@ -137,10 +132,7 @@ void removeTask(int idTask){
 }
 
 void manageTimer(){
-
-	//if(mode == EXPROPIATIVO){
-		swapcontext(&current->context, &mainContext);
-	//}
+		swapcontext(&contexts[currentId], &mainContext);
 }
 
 void updateWork(float percent, double result){

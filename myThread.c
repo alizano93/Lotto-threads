@@ -16,9 +16,6 @@
 #include "myThread.h"
 
 //typedef long thread_t;
-extern int totalProcess;
-extern int actualNumberOfProcess;
-extern int totalTickets;
 extern struct Thread **tasks;
 
 extern int mode; // 1 = expropiativo 2= no expropiativo
@@ -31,10 +28,23 @@ long timeIntervalInMSec;
 sigset_t sigsetMask;
 extern Thread * current;
 ucontext_t mainContext;
+state *states;
 
-void generalFunction(void (*rutine)(int),int arg){
-    (*rutine)(arg);
-    current->finish = 1;
+void stop_timer(){
+    struct itimerval zero_timer = { 0 };
+    setitimer(ITIMER_PROF, &zero_timer, &quantum);
+}
+
+void start_timer(){
+    setitimer(ITIMER_PROF, &quantum, NULL);
+}
+
+void generalFunction(void (*rutine)(int, int), int arg, int id){
+
+    (*rutine)(arg, id);
+    states[id].finish = 1;
+    thread_yield();
+
     return;
 }
 /*
@@ -67,7 +77,6 @@ struct sched_t *scheduler;
 void timer_handler(int sigNum){
 
 	scheduler->manageTimer();
-		
 }
 
 
@@ -76,19 +85,33 @@ void thread_init(long nquantum, int totalProcessInit, struct sched_t *schedulerI
         scheduler = schedulerIn;
         sigemptyset(&sigsetMask);
         sigaddset(&sigsetMask,SIGPROF);
-	    totalProcess = totalProcessInit;
-    	actualNumberOfProcess = 0;
-	    getcontext(&mainContext);
-	    memset(&schedulerHandle,0,sizeof(schedulerHandle));
-	    schedulerHandle.sa_handler = timer_handler;
-	    sigaction(SIGPROF,&schedulerHandle,NULL);
-	    timeIntervalInMSec = nquantum;
-	    quantum.it_value.tv_sec = 0;// http://linux.die.net/man/2/setitimer
+	getcontext(&mainContext);
+	memset(&schedulerHandle,0,sizeof(schedulerHandle));
+	schedulerHandle.sa_handler = timer_handler;
+	sigaction(SIGPROF,&schedulerHandle,NULL);
+	timeIntervalInMSec = nquantum;
+	quantum.it_value.tv_sec = 0;// http://linux.die.net/man/2/setitimer
         quantum.it_value.tv_usec = timeIntervalInMSec;
         quantum.it_interval.tv_sec=0;
         quantum.it_interval.tv_usec = timeIntervalInMSec;
-        if(mode == EXPROPIATIVO)
-            setitimer(ITIMER_PROF, &quantum, NULL);
+
+	states = (state*)malloc(sizeof(state) * totalProcessInit);
+	
+	int k;
+
+	for( k  = 0; k < totalProcessInit; k++){
+		state newState;;
+		newState.id = k;
+		newState.finish = 0;
+		newState.percent = 0.0;
+		newState.result = 0.0;
+		newState.active = 0;
+		states[k] = newState;
+	}
+	
+	
+        /*if(mode == EXPROPIATIVO)
+            setitimer(ITIMER_PROF, &quantum, NULL);*/
 
           /*  sigemptyset(&sigsetMask);
             sigaddset(&sigsetMask, SIGPROF); //para mandar sennal cuando expire el timer
@@ -108,16 +131,17 @@ void thread_init(long nquantum, int totalProcessInit, struct sched_t *schedulerI
 }
 
 
-int thread_create(char *id, int tickets, void (*rutina)(int), int arg) {
+int thread_create(char *id, int tickets, void (*rutina)(int, int), int arg, int idInt) {
 	
         struct Thread *newThread = getNewThreadnoStack(tickets, id);
-        getcontext(&(newThread->context));
-        newThread->context.uc_stack.ss_sp = malloc(STACKSIZE);
-        newThread->context.uc_stack.ss_size = STACKSIZE;
-        newThread->context.uc_stack.ss_flags = 0;
-        newThread->context.uc_link = &mainContext;
-        makecontext (&(newThread->context), (void (*) (void))generalFunction, 2,rutina, arg);
-     	scheduler->addTask(newThread);
+	ucontext_t context;
+        getcontext(&(context));
+        context.uc_stack.ss_sp = malloc(STACKSIZE);
+        context.uc_stack.ss_size = STACKSIZE;
+        context.uc_stack.ss_flags = 0;
+        context.uc_link = &mainContext;
+        makecontext (&(context), (void (*) (void))generalFunction, 3, rutina, arg, idInt);
+     	scheduler->addTask(newThread, context);
 	
 	return 1;
 }
@@ -126,7 +150,7 @@ void thread_yield(){
 
 	
 	    
-//raise(SIGPROF); //con esto deberia bastar mandando la sennal se captura y cambio segun el scheduler
+raise(SIGPROF); //con esto deberia bastar mandando la sennal se captura y cambio segun el scheduler
 }
 
 void thread_exit(){
@@ -142,15 +166,18 @@ int thread_join(){
     return 0;//espera a que todos hayan terminado
 }
 
-void updateThread(float percent, double result){
-	current->percent = percent;
-	current->result = 2 * result;
+void updateThread(float percent, double result, int id){
+	states[id].percent = percent;
+	states[id].result = (2 * result);
 }
 
+char* getCurrentid(){
+    return current->tid;
+}
 
-
-
-
+int isFinished(){
+    return current->finish;
+}
 
 
 

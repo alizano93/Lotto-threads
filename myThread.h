@@ -23,7 +23,7 @@
 void thread_init(long nquantum, int totalProcessInit, struct sched_t *);
 
 //creo el contexto, lo meto a la cola de los threads devuelvo 1 si funciono todo
-int thread_create(char *id, int tickets, void (*rutina)(int), int arg);
+int thread_create(char *id, int tickets, void (*rutina)(int, int), int arg, int idInt);
 
 //con esto deberia bastar mandando la sennal se captura y cambio segun el scheduler
 void thread_yield();
@@ -37,10 +37,18 @@ thread_t self();
 //espera a que todos hayan terminado
 int thread_join();
 
+
+float getCurrentPercent();
+double getCurrentResult();
+int isFinished();
+
+char* getCurrentid();
 static void muchoTrabajo(int n);
 
 //actualiza el porcentaje de progreso y el resultado temporal (y final) para cada termino del calculo
-void updateThread(float percent, double result);
+void updateThread(float percent, double result, int);
 
+void resume_timer();
+void start_timer();
 #endif //MY_THREAD_H
 

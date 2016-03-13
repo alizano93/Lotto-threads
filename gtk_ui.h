@@ -1,5 +1,5 @@
 #include <gtk/gtk.h>
-
+#include "Structures.h"
 typedef struct row_struct_t
 {
     int id_int;
@@ -23,3 +23,7 @@ void init_table();
 void create_UI(int);
 
 void show_ui();
+
+int activeTimer();
+
+void stopTimer(int);

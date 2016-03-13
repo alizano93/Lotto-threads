@@ -4,6 +4,7 @@
 
 //#include <gtk/gtk.h>
 #include "gtk_ui.h"
+#include "myThread.h"
 #include "hashmap.h"
 
 static float percent = 0.0;
@@ -11,7 +12,8 @@ static float percent = 0.0;
 map_t mymap;
 static GtkWidget *window;
 GtkWidget *table;
-
+extern int totalProcess;
+extern state *states;
 
 /*
 static gboolean inc_progress(gpointer data){
@@ -46,14 +48,14 @@ void update_row_active(char *id_char){
 //	printf("%d", error);
 
         assert(error==MAP_OK);
-        assert(thread->id_char==id_char);
+        //assert(thread->id_char==id_char);
 
-//	gdk_threads_enter();
+	gdk_threads_enter();
 
 	gtk_label_set_text (GTK_LABEL (thread->status), "ACTIVE");
 
 //	gdk_flush ();
-//	gdk_threads_leave();
+	gdk_threads_leave();
 }
 /*
 void update_row_inactive_completed(char *id_char, int finish){
@@ -88,8 +90,6 @@ void update_row_inactive_completed(char *id_char, int finish){
 */
 
 
-
-
 void update_row_work(char *id_char, float percent, double result, int finish){
 
 
@@ -103,7 +103,7 @@ void update_row_work(char *id_char, float percent, double result, int finish){
 
         /* Make sure the value was both found and the correct number */
         assert(error==MAP_OK);
-        assert(thread->id_char==id_char);
+        //assert(thread->id_char==id_char);
 
 	char *st;
 	if(finish == 1){
@@ -112,7 +112,7 @@ void update_row_work(char *id_char, float percent, double result, int finish){
 		st = "INACTIVE";
 	}
 
-//	gdk_threads_enter();
+	gdk_threads_enter();
 
 	gtk_label_set_text (GTK_LABEL (thread->status), st);
 
@@ -126,7 +126,7 @@ void update_row_work(char *id_char, float percent, double result, int finish){
 	gtk_label_set_text (GTK_LABEL (thread->result), d);
 
 //	gdk_flush ();
-//	gdk_threads_leave();
+	gdk_threads_leave();
 }
 
 /*
@@ -160,6 +160,43 @@ void update_row(map_t mymap, Thread* current){
 	gtk_label_set_text (GTK_LABEL (thread->result), d);
 }
 */
+
+double currentp = 0.0;
+
+static gboolean progress_timeout( gpointer data ){
+
+	int k;
+	char *ids[] = {"1", "2", "3"};
+	int allFinish = 1;
+	
+	for( k = 0; k < 3; k++){
+		
+		if(states[k].percent < 1.0){
+			allFinish = 0;
+		}
+
+		update_row_work(ids[k], states[k].percent, states[k].result, states[k].finish);
+		if(states[k].active){
+			update_row_active(ids[k]);	
+		}
+	}
+	if(allFinish){
+
+		return FALSE;
+	}	
+	return TRUE;
+}
+
+int activeTimer(){
+	int timer = g_timeout_add (10, progress_timeout, NULL);
+	return timer;
+}
+
+
+void stopTimer(int timer){
+	g_source_remove(timer);
+}
+
 
 void add_row(int id_int, char *id_char){
 
@@ -449,5 +486,4 @@ int main(int argc, char *argv[]) {
 	gtk_main();
 
 	return 0;
-}
-*/
+}*/

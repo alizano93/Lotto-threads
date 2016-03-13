@@ -9,46 +9,48 @@
 #include "myThread.h"
 #include "task_t.h"
 #include "gtk_ui.h"
-
+#include <pthread.h>
+#include <unistd.h>
 int nThreads;
 int mode;
 int *ticketsByThread;
 int *workByThread;
-int quantum;
+static int quantum;
 char** ids;
+extern Thread *current;
 
-extern int totalProcess;
-extern int actualNumberOfProcess;
-
-double arcsin(double x, int n)
+double arcsin(double x, int n, int id)
 {
     //Agregado por Andres
-    int n_torelease= n * quantum / 100;
+    double percentage = (double)quantum/(double)100.0;
+    int n_torelease= ((double)n * percentage);
     //Fin
     double fact,sum;
     fact=sum=1.0;
     int i;
-    for(i=1;i<=n;i++)
-    {
+    for(i=1;i<=n;i++){
+	
     if(mode != EXPROPIATIVO && i % n_torelease == 0){
+	
         raise(SIGPROF);
     }
 	fact *= (2 * (double)i - 1)/(2 * (double)i );
 	double po = pow(x,(2*(double)i+1));
 	double factwo = po / (2*(double)i+1);
 	sum += fact * (pow(x,(2*(double)i+1)) / (2*(double)i+1));
-
 	//Agregado por Daniel
-	float percent = (float)i / (float)n;
+	double percent = (double)i / (double)n;
+	updateThread(percent, sum, id);
+	//printf("%f\n", percent);
 	
-	updateThread(percent, sum);
 	//Fin
     }
     return sum;
 }
 
-static void trabajo(int n){
-    printf("resultado final = 2 arcsin (1) = %lf \n", 2*arcsin(1.0,n*50));
+static void trabajo(int n, int id){
+    double result = 2*arcsin(1.0,n*50, id);
+    printf("resultado final = 2 arcsin (1) = %lf \n", result);
 }
 //O(3n)
 
@@ -193,9 +195,9 @@ void readFileProperties(char *path){
 }
 
 
-static gpointer
-thread_func( gpointer data )
-{
+void *inc_x(void *x_void_ptr){
+
+	sleep(2);
     	struct sched_t *sch = sched_ls_alloc(nThreads, mode); //creating scheduler	
 
 	thread_init(quantum, nThreads, sch); //creating thread lib
@@ -203,12 +205,33 @@ thread_func( gpointer data )
 	int j;
 
 	for(j = 0; j < nThreads; j++){
-		thread_create(ids[j], ticketsByThread[j] , trabajo, workByThread[j]);	//creating threads
+		thread_create(ids[j], ticketsByThread[j] , trabajo, workByThread[j], j);	//creating threads
 //		add_row(t_id);
 	}
 
 	thread_join();
+    	return( NULL );
 
+
+}
+
+static gpointer
+thread_func( gpointer data )
+{
+	sleep(1);
+    	struct sched_t *sch = sched_ls_alloc(nThreads, mode); //creating scheduler	
+
+	thread_init(quantum, nThreads, sch); //creating thread lib
+
+	int j;
+
+	for(j = 0; j < nThreads; j++){
+		thread_create(ids[j], ticketsByThread[j] , trabajo, workByThread[j], j);	//creating threads
+//		add_row(t_id);
+	}
+
+	thread_join();
+	
     	return( NULL );
 }
 
@@ -273,13 +296,16 @@ int main(int argc, char * argv[]){
 
 
 	show_ui();
-
+	
+	pthread_t inc_x_thread;
+	int t= 1;
+	pthread_create(&inc_x_thread, NULL, inc_x, &t);
 	/* Create new thread */
-    thread = g_thread_new("lottery", thread_func,NULL);
+    //thread = g_thread_new("lottery", thread_func,NULL);
 
 	
 
-
+	//activeTimer();
 	
 	
 //	gdk_threads_enter();
