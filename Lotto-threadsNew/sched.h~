@@ -4,6 +4,7 @@
 #define __SCHED_H__
 
 #include "Structures.h"
+#include <ucontext.h>
 enum{EXPROPIATIVO, NO_EXPROPIATIVO};
 /* scheduler struct */
 struct sched_t {
@@ -12,8 +13,6 @@ struct sched_t {
     void (*manageTimer)();
     void (*init)(int, int);
     void (*updateWork)(float, double);
-    void(*updateCurrent)();
-    void (*switchContext)();
     
 };
 

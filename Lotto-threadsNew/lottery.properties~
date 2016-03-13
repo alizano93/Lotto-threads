@@ -1,0 +1,5 @@
+mode=NO_EXPROPIATIVO
+nThreads=3
+ticketsByThread=10;10;10
+workByThread=100000;100000;100000
+quantum=1

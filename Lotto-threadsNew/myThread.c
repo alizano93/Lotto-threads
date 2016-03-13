@@ -20,6 +20,7 @@ extern struct Thread **tasks;
 
 extern int mode; // 1 = expropiativo 2= no expropiativo
 sigset_t sigThreadMask; // para el manejo de las sennales
+int ignorarsennal;
 struct sigaction schedulerHandle; //con este es que voy a inicializar el scheduler (ver el thread_init)
 ucontext_t notifierContext; //funciona como notificador
 struct itimerval quantum; //estrutura para el timer
@@ -44,21 +45,6 @@ void generalFunction(void (*rutine)(int, int), int arg, int id){
     states[id].finish = 1;
     thread_yield();
 
-<<<<<<< HEAD
-=======
-void stop_timer(){
-    struct itimerval zero_timer = { 0 };
-    setitimer(ITIMER_PROF, &zero_timer, &quantum);
-}
-
-void start_timer(){
-    setitimer(ITIMER_PROF, &quantum, NULL);
-}
-
-void generalFunction(void (*rutine)(int),int arg){
-    (*rutine)(arg);
-    current->finish = 1;
->>>>>>> 9f390b8f4e9511acfa13047bec0d3822c7fabb91
     return;
 }
 /*
@@ -89,11 +75,13 @@ struct Thread* getNewThreadnoStack(int tickets, char *id)
 struct sched_t *scheduler;
 
 void timer_handler(int sigNum){
+
 	scheduler->manageTimer();
 }
 
 
 void thread_init(long nquantum, int totalProcessInit, struct sched_t *schedulerIn) {
+	
         scheduler = schedulerIn;
         sigemptyset(&sigsetMask);
         sigaddset(&sigsetMask,SIGPROF);
@@ -106,7 +94,6 @@ void thread_init(long nquantum, int totalProcessInit, struct sched_t *schedulerI
         quantum.it_value.tv_usec = timeIntervalInMSec;
         quantum.it_interval.tv_sec=0;
         quantum.it_interval.tv_usec = timeIntervalInMSec;
-<<<<<<< HEAD
 
 	states = (state*)malloc(sizeof(state) * totalProcessInit);
 	
@@ -123,8 +110,6 @@ void thread_init(long nquantum, int totalProcessInit, struct sched_t *schedulerI
 	}
 	
 	
-=======
->>>>>>> 9f390b8f4e9511acfa13047bec0d3822c7fabb91
         /*if(mode == EXPROPIATIVO)
             setitimer(ITIMER_PROF, &quantum, NULL);*/
 
@@ -162,15 +147,10 @@ int thread_create(char *id, int tickets, void (*rutina)(int, int), int arg, int 
 }
 
 void thread_yield(){
-<<<<<<< HEAD
 
 	
 	    
 raise(SIGPROF); //con esto deberia bastar mandando la sennal se captura y cambio segun el scheduler
-=======
-	raise(SIGPROF);
-//raise(SIGPROF); //con esto deberia bastar mandando la sennal se captura y cambio segun el scheduler
->>>>>>> 9f390b8f4e9511acfa13047bec0d3822c7fabb91
 }
 
 void thread_exit(){
@@ -182,41 +162,13 @@ thread_t self(){
 }
 
 int thread_join(){
-    scheduler->switchContext();
+	scheduler->run();
     return 0;//espera a que todos hayan terminado
 }
-char* getCurrentid(){
-    return current->tid;
-}
-float getCurrentPercent(){
-    return current->percent;
-}
 
-double getCurrentResult(){
-    return current->result;
-}
-int isFinished(){
-    return current->finish;
-}
-
-int getActualNumberOfProcess(){
-
-<<<<<<< HEAD
 void updateThread(float percent, double result, int id){
 	states[id].percent = percent;
 	states[id].result = (2 * result);
-=======
-	return actualNumberOfProcess;
-}
-
-void updateCurrentScheduler(){
-
-	scheduler->updateCurrent();
-}
-void updateThread(float percent, double result){
-	current->percent = percent;
-	current->result = 2 * result;
->>>>>>> 9f390b8f4e9511acfa13047bec0d3822c7fabb91
 }
 
 char* getCurrentid(){

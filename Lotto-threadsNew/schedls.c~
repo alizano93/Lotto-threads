@@ -12,11 +12,7 @@ int totalTickets;
 int mode;
 Thread **tasks;
 extern ucontext_t mainContext;
-<<<<<<< HEAD
 extern state *states;
-=======
-extern sigset_t sigsetMask;
->>>>>>> 9f390b8f4e9511acfa13047bec0d3822c7fabb91
 Thread *current;
 ucontext_t *contexts;
 int completed;
@@ -93,62 +89,20 @@ Thread * nextTask(){
 	return NULL;
 	
 }
-<<<<<<< HEAD
 	
 void run(){
 	
-	activeTimer();
+	//
 	while(actualNumberOfProcess > 0){
 		
 		current = nextTask(); 
 		currentId = atoi(current->tid) - 1;
-		states[currentId].active = 1;
-		swapcontext(&mainContext, &contexts[currentId]);
-		states[currentId].active = 0;	
+		swapcontext(&mainContext, &contexts[currentId]);	
 		if(states[currentId].finish){
 			completed++;			
 			reCalculateBoundaries(current->tid); 
 		}
 	}
-	//stopTimer(timer);
-=======
-
-void updateCurrent(){
-	current = nextTask();
-}
-
-void switchContext(){
-	//while(actualNumberOfProcess > 0){
-		//current = nextTask(); //O(log(n))
-		//printf("Election %s\n", current->tid);
-
-		//actualizar estado del que va a ser el current
-
-		//update_row_active(current->tid);
-		if(mode == EXPROPIATIVO){
-			start_timer();
-			swapcontext(&mainContext, &current->context);
-			stop_timer();
-		}else{
-			swapcontext(&mainContext, &current->context);
-			
-		}
-		//actualizar estado del que va a dejar de ser current
-		//update_row_inactive_completed(current->tid, current->finish);
-
-		//update_row_work(current->tid, current->percent, current->result, current->finish);
-
-
-		//current->finish = 1;
-		if(current->finish){
-			completed++;
-			reCalculateBoundaries(current->tid); //O(n)
-		}
-
-	//}
-
-
->>>>>>> 9f390b8f4e9511acfa13047bec0d3822c7fabb91
 }
 
 
@@ -175,11 +129,7 @@ void removeTask(int idTask){
 }
 
 void manageTimer(){
-<<<<<<< HEAD
 		swapcontext(&contexts[currentId], &mainContext);
-=======
-	swapcontext(&current->context, &mainContext);
->>>>>>> 9f390b8f4e9511acfa13047bec0d3822c7fabb91
 }
 
 void updateWork(float percent, double result){
@@ -196,8 +146,7 @@ struct sched_t * sched_ls_alloc(int totalProcessInit, int modeIn){
 	ls->removeTask = removeTask;
 	ls->manageTimer = manageTimer;
 	ls->init = init;
-	ls->updateCurrent = updateCurrent;
-	ls->switchContext = switchContext;
+	ls->run = run;
 	ls->init(totalProcessInit, modeIn);
 	
 	return ls;

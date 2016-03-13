@@ -46,19 +46,9 @@ char* getCurrentid();
 static void muchoTrabajo(int n);
 
 //actualiza el porcentaje de progreso y el resultado temporal (y final) para cada termino del calculo
-<<<<<<< HEAD
 void updateThread(float percent, double result, int);
 
 void resume_timer();
 void start_timer();
-=======
-void updateThread(float percent, double result);
-void stop_timer();
-void start_timer();
-char* getCurrentid();
-float getCurrentPercent();
-double getCurrentResult();
-int isFinished();
->>>>>>> 9f390b8f4e9511acfa13047bec0d3822c7fabb91
 #endif //MY_THREAD_H
 

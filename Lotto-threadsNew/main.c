@@ -31,11 +31,7 @@ double arcsin(double x, int n, int id)
     for(i=1;i<=n;i++){
 	
     if(mode != EXPROPIATIVO && i % n_torelease == 0){
-<<<<<<< HEAD
 	
-=======
-
->>>>>>> 9f390b8f4e9511acfa13047bec0d3822c7fabb91
         raise(SIGPROF);
     }
 	fact *= (2 * (double)i - 1)/(2 * (double)i );
@@ -116,8 +112,8 @@ char **splitString(char *str, const char separator){
 void startArrayWork(char **tokens){
 	
 	int size = sizeof(tokens) / sizeof(*tokens); //This to let receive parameters in any order.
-	workByThread = (int*)malloc(sizeof(int) * nThreads);
-	//workByThread = (int*)malloc(sizeof(int) * size);
+	//workByThread = (int*)malloc(sizeof(int) * nThreads);
+	workByThread = (int*)malloc(sizeof(int) * size);
 	int i;
         for (i = 0; i < nThreads; i++){
 		
@@ -201,11 +197,7 @@ void readFileProperties(char *path){
 
 void *inc_x(void *x_void_ptr){
 
-<<<<<<< HEAD
 	sleep(2);
-=======
-	sleep(1);
->>>>>>> 9f390b8f4e9511acfa13047bec0d3822c7fabb91
     	struct sched_t *sch = sched_ls_alloc(nThreads, mode); //creating scheduler	
 
 	thread_init(quantum, nThreads, sch); //creating thread lib
@@ -213,11 +205,7 @@ void *inc_x(void *x_void_ptr){
 	int j;
 
 	for(j = 0; j < nThreads; j++){
-<<<<<<< HEAD
 		thread_create(ids[j], ticketsByThread[j] , trabajo, workByThread[j], j);	//creating threads
-=======
-		thread_create(ids[j], ticketsByThread[j] , trabajo, workByThread[j]);	//creating threads
->>>>>>> 9f390b8f4e9511acfa13047bec0d3822c7fabb91
 //		add_row(t_id);
 	}
 
@@ -262,10 +250,10 @@ int main(int argc, char * argv[]){
 //        g_thread_init( NULL );
 
     /* Secure gtk */
-  //  gdk_threads_init();
+    gdk_threads_init();
 
     /* Obtain gtk's global lock */
-  //  gdk_threads_enter();
+    gdk_threads_enter();
 
 
 
@@ -273,9 +261,11 @@ int main(int argc, char * argv[]){
 
 	gtk_init(NULL, NULL);
 
-	struct sched_t *sch = sched_ls_alloc(nThreads, mode); //creating scheduler
+//	struct sched_t *sch = sched_ls_alloc(nThreads, mode); //creating scheduler	
 
-	thread_init(quantum, nThreads, sch); //creating thread lib
+//	thread_init(quantum, nThreads, sch); //creating thread lib
+
+		
 
 	create_UI(nThreads);
 
@@ -289,7 +279,6 @@ int main(int argc, char * argv[]){
 		char *id_char = malloc(sizeof(char) * 5);
 		sprintf(id_char, "%d", t_id);
 		ids[j] = id_char;
-		thread_create(id_char, ticketsByThread[j] , trabajo, workByThread[j]);
 		add_row(t_id, id_char);
 	}
 
@@ -307,20 +296,12 @@ int main(int argc, char * argv[]){
 
 
 	show_ui();
-<<<<<<< HEAD
 	
 	pthread_t inc_x_thread;
 	int t= 1;
 	pthread_create(&inc_x_thread, NULL, inc_x, &t);
 	/* Create new thread */
     //thread = g_thread_new("lottery", thread_func,NULL);
-=======
-	//pthread_t inc_x_thread;
-	//int t= 1;
-	//pthread_create(&inc_x_thread, NULL, inc_x, &t);
-	/* Create new thread */
-   // thread = g_thread_new("lottery", thread_func,NULL);
->>>>>>> 9f390b8f4e9511acfa13047bec0d3822c7fabb91
 
 	
 
@@ -332,11 +313,11 @@ int main(int argc, char * argv[]){
 //	thread_join();
 
 	gtk_main();// LOOP CONFLICT WITH JOIN????
-    //thread_yield();
-   // while(1){printf("llega a este while");}
+
+
 
 	/* Release gtk's global lock */
-   // gdk_threads_leave();
+    gdk_threads_leave();
 
 
 	

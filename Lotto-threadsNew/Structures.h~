@@ -16,7 +16,7 @@ typedef struct state{
 
 	int id;
 	int finish;
-	double percent;
+	float percent;
 	double result;
 	int active;
 	
@@ -49,10 +49,8 @@ struct sched_t {
     void (*removeTask)(int);
     void (*manageTimer)();
     void (*init)(int, int);
-    //void (*run)();
+    void (*run)();
     void (*updateWork)(float, double);
-    void(*updateCurrent)();
-    void (*switchContext)();
     
 };
 

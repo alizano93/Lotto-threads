@@ -12,8 +12,6 @@ struct sched_t {
     void (*manageTimer)();
     void (*init)(int, int);
     void (*updateWork)(float, double);
-    void(*updateCurrent)();
-    void (*switchContext)();
     
 };
 
